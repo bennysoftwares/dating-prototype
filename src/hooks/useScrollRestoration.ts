@@ -5,7 +5,7 @@ const positions = new Map<string, number>();
 /**
  * Remembers the window scroll position for `key` when the screen unmounts and
  * restores it when the screen returns and its content is `ready`. Used so opening
- * a profile from Discover and coming back never throws you to the top.
+ * a profile from Explore or Standouts and coming back never throws you to the top.
  */
 export function useScrollRestoration(key: string, ready: boolean) {
   const restored = useRef(false);

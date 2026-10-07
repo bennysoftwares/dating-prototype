@@ -84,7 +84,7 @@ export function PrivacyScreen() {
               />
               <Switch
                 label="Pause profile"
-                description="Stop appearing in Discover without deleting matches. Your conversations stay."
+                description="Stop appearing in Explore without deleting matches. Your conversations stay."
                 checked={pausedOn}
                 onChange={(on) => {
                   setPausedOn(on);

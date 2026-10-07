@@ -18,7 +18,7 @@ export function AppShell() {
           <Outlet />
         </div>
       </main>
-      <BottomNav badges={{ '/likes': pendingLikeCount, '/matches': unreadConversationCount }} />
+      <BottomNav badges={{ '/likes': pendingLikeCount, '/chats': unreadConversationCount }} />
     </div>
   );
 }

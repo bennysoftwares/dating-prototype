@@ -1,0 +1,74 @@
+:root { --action-bar-height: 96px; }
+.dprofile {
+  min-height: 100dvh;
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  overflow-x: clip;
+}
+.dprofile__top {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: grid;
+  grid-template-columns: var(--tap-min) 1fr var(--tap-min);
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--safe-top) var(--space-2) 0;
+  min-height: calc(var(--header-height) + var(--safe-top));
+  background: var(--color-header-bg);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+}
+.dprofile__brand { display: flex; justify-content: center; min-width: 0; }
+.dprofile__body {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) var(--gutter) calc(var(--action-bar-height) + var(--safe-bottom) + var(--space-6));
+}
+.dprofile__actions {
+  position: fixed;
+  z-index: var(--z-nav);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(var(--action-bar-height) + var(--safe-bottom));
+  padding: var(--space-4) calc(var(--gutter) + var(--safe-right)) calc(var(--space-4) + var(--safe-bottom)) calc(var(--gutter) + var(--safe-left));
+  /* Content fades out under the buttons instead of a hard bar. */
+  background: linear-gradient(to top, var(--color-bg) 45%, transparent);
+  pointer-events: none;
+}
+.dprofile__actions > * { pointer-events: auto; }
+.dprofile__choices { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 7vw, 36px); }
+.dprofile__choice {
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.dprofile__choice:active:not(:disabled) { transform: scale(0.92); }
+.dprofile__choice:disabled { opacity: 0.6; }
+.dprofile__choice--pass { background: var(--color-surface-raised); color: var(--color-text); }
+.dprofile__choice--message { background: var(--color-accent-soft); color: var(--color-accent-soft-text); width: 56px; height: 56px; }
+.dprofile__choice--like { width: 68px; height: 68px; background: var(--gradient-accent); color: var(--color-accent-contrast); box-shadow: var(--shadow-accent); }
+.dprofile__decided { padding: var(--space-3) var(--space-4); border-radius: var(--radius-pill); background: var(--color-surface-raised); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: var(--space-3); width: 100%; max-width: 460px; color: var(--color-text-muted); font-weight: var(--weight-medium); }
+.dprofile__decided span { flex: 1; }
+.dprofile__decided svg { color: var(--color-accent); }
+.dprofile__loading { padding: calc(var(--safe-top) + 72px) var(--gutter); display: flex; justify-content: center; }
+.dprofile__skeleton { max-width: 460px; border-radius: var(--radius-xl); }
+.dprofile__missing { padding-top: calc(var(--safe-top) + var(--space-12)); }
+.dprofile__body--stack { flex-direction: column; align-items: center; gap: var(--space-4); }
+.dprofile__body--stack > * { width: 100%; max-width: 460px; }
+
+/* Shared by the Likes and Chat profile screens: a centred name and two wide buttons. */
+.dprofile__heading { text-align: center; min-width: 0; }
+.dprofile__heading h1 { font-family: var(--font-display); font-size: var(--text-xl); font-weight: var(--weight-medium); letter-spacing: -0.01em; }
+.dprofile__heading p { font-size: var(--text-xs); color: var(--color-text-subtle); }
+.dprofile__actions { gap: var(--space-3); }
+.dprofile__pass, .dprofile__like { flex: 1; max-width: 220px; box-shadow: var(--shadow-md); }
+.dprofile__like { background: var(--gradient-accent); }

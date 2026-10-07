@@ -1,4 +1,4 @@
-import { createHashRouter, Navigate, Outlet } from 'react-router';
+import { createHashRouter, Navigate, Outlet, useParams } from 'react-router';
 import { AppShell } from '../components/layout/AppShell';
 import { ConnectionsProvider } from '../connections/ConnectionsProvider';
 import { DiscoveryProvider } from '../discovery/DiscoveryProvider';
@@ -7,8 +7,9 @@ import { ArchivedScreen } from '../screens/matches/ArchivedScreen';
 import { ChatProfileScreen } from '../screens/matches/ChatProfileScreen';
 import { ChatScreen } from '../screens/matches/ChatScreen';
 import { MatchCelebrationScreen } from '../screens/matches/MatchCelebrationScreen';
-import { DiscoverProfileScreen } from '../screens/discover/DiscoverProfileScreen';
-import { DiscoverScreen } from '../screens/discover/DiscoverScreen';
+import { ExploreProfileScreen } from '../screens/explore/ExploreProfileScreen';
+import { ExploreScreen } from '../screens/explore/ExploreScreen';
+import { StandoutsScreen } from '../screens/standouts/StandoutsScreen';
 import { LikesScreen } from '../screens/likes/LikesScreen';
 import { MatchesScreen } from '../screens/matches/MatchesScreen';
 import { ProfileEditScreen } from '../screens/profile/ProfileEditScreen';
@@ -18,6 +19,11 @@ import { NotFoundScreen } from '../screens/system/NotFoundScreen';
 import { RouteError } from '../screens/system/RouteError';
 import { SessionGate, Splash } from '../screens/system/SessionGate';
 import { ONBOARDING_ROUTES, ROUTES } from './navigation';
+
+/** Old paths (Discover, Matches) keep working: redirect, carrying any id along. */
+function Moved({ to }: { to: (params: Record<string, string | undefined>) => string }) {
+  return <Navigate to={to(useParams())} replace />;
+}
 
 /**
  * Rarely used or first-run screens (onboarding, settings, the debug panel) are loaded on demand
@@ -32,7 +38,13 @@ export const router = createHashRouter([
     // Shown while a lazily loaded screen (onboarding, settings, debug) loads on first visit.
     hydrateFallbackElement: <Splash />,
     children: [
-      { index: true, element: <Navigate to={ROUTES.discover} replace /> },
+      { index: true, element: <Navigate to={ROUTES.explore} replace /> },
+      { path: '/discover', element: <Navigate to={ROUTES.explore} replace /> },
+      { path: '/discover/:profileId', element: <Moved to={(p) => ROUTES.exploreProfile(p.profileId ?? '')} /> },
+      { path: '/matches', element: <Navigate to={ROUTES.chats} replace /> },
+      { path: '/matches/archived', element: <Navigate to={ROUTES.archived} replace /> },
+      { path: '/matches/:matchId', element: <Moved to={(p) => ROUTES.chat(p.matchId ?? '')} /> },
+      { path: '/matches/:matchId/profile', element: <Moved to={(p) => ROUTES.chatProfile(p.matchId ?? '')} /> },
 
       // Not finished onboarding yet.
       {
@@ -60,9 +72,10 @@ export const router = createHashRouter([
           {
             element: <AppShell />,
             children: [
-              { path: ROUTES.discover, element: <DiscoverScreen /> },
+              { path: ROUTES.explore, element: <ExploreScreen /> },
+              { path: ROUTES.standouts, element: <StandoutsScreen /> },
               { path: ROUTES.likes, element: <LikesScreen /> },
-              { path: ROUTES.matches, element: <MatchesScreen /> },
+              { path: ROUTES.chats, element: <MatchesScreen /> },
               { path: ROUTES.archived, element: <ArchivedScreen /> },
               { path: ROUTES.settings, lazy: () => import('../screens/settings/SettingsScreen').then((m) => ({ Component: m.SettingsScreen })) },
               { path: ROUTES.filters, lazy: () => import('../screens/settings/FiltersScreen').then((m) => ({ Component: m.FiltersScreen })) },
@@ -76,11 +89,11 @@ export const router = createHashRouter([
             ],
           },
           // Full-screen views (no tab bar, primary actions in thumb reach).
-          { path: '/discover/:profileId', element: <DiscoverProfileScreen /> },
+          { path: '/explore/:profileId', element: <ExploreProfileScreen /> },
           { path: '/likes/:likeId', element: <LikeProfileScreen /> },
           { path: '/match/:matchId', element: <MatchCelebrationScreen /> },
-          { path: '/matches/:matchId', element: <ChatScreen /> },
-          { path: '/matches/:matchId/profile', element: <ChatProfileScreen /> },
+          { path: '/chats/:matchId', element: <ChatScreen /> },
+          { path: '/chats/:matchId/profile', element: <ChatProfileScreen /> },
           { path: '/profile/edit/:stepId', lazy: () => import('../screens/profile/ProfileEditStepScreen').then((m) => ({ Component: m.ProfileEditStepScreen })) },
         ],
       },

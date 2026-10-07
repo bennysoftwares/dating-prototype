@@ -32,3 +32,6 @@
   .shell { padding-left: calc(var(--rail-width) + var(--safe-left)); }
   .shell__main { padding-bottom: calc(var(--space-12) + var(--safe-bottom)); }
 }
+
+/* Explore is exactly one screen tall: no extra scroll space under it. */
+.shell__main:has(.explore) { padding-bottom: 0; }

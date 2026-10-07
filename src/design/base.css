@@ -14,7 +14,8 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--color-bg);
+  background: var(--color-bg-glow), var(--color-bg);
+  background-attachment: fixed;
   color: var(--color-text);
   font-family: var(--font-body);
   font-size: var(--text-md);
@@ -93,3 +94,32 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* Rounded selector pill (Explore sorts, Chats tabs). Selected = terracotta. */
+.pill {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--tap-min);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  font-weight: var(--weight-medium);
+  white-space: nowrap;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+}
+.pill:hover { border-color: var(--color-border-strong); }
+.pill[aria-pressed='true'],
+.pill[aria-selected='true'] {
+  background: var(--gradient-accent);
+  border-color: transparent;
+  color: var(--color-accent-contrast);
+  box-shadow: var(--shadow-accent);
+}
+.pill svg { flex: none; }

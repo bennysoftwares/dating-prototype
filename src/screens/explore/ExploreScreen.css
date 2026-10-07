@@ -1,0 +1,95 @@
+.explore {
+  display: flex;
+  flex-direction: column;
+  /* Exactly one screen: the card fills whatever the device leaves after header, pills and tab bar. */
+  height: calc(100dvh - var(--nav-height) - var(--safe-bottom));
+  max-width: 540px;
+  margin: 0 auto;
+  padding: var(--safe-top) var(--space-4) var(--space-3);
+}
+.explore__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 60px;
+  padding-top: var(--space-2);
+}
+.explore__tools { display: flex; gap: var(--space-2); }
+.explore__tool.icon-btn { width: 48px; height: 48px; background: var(--color-surface); border-color: var(--color-border); }
+.explore__tool.icon-btn:disabled { opacity: 0.4; }
+
+.explore__pills {
+  display: flex;
+  gap: var(--space-2);
+  margin: var(--space-2) calc(var(--space-4) * -1) var(--space-3);
+  padding: 2px var(--space-4) 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.explore__pills::-webkit-scrollbar { display: none; }
+.explore__pills .pill { flex: 1 0 auto; padding: 0 14px; gap: 6px; }
+
+.explore__note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin: calc(var(--space-2) * -1) 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.explore__stage { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.explore__state { flex: 1; display: flex; align-items: center; justify-content: center; overflow-y: auto; }
+.explore__widen { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-2); width: min(100%, 320px); }
+.explore__inline-error {
+  position: absolute;
+  z-index: 5;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+.explore__inline-error span { color: var(--color-accent); font-weight: var(--weight-semibold); margin-left: 4px; }
+
+/* Initial load: a quiet card with the doves breathing. */
+.explore__loading { flex: 1; display: flex; }
+.explore__loading-card {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-card);
+  background: linear-gradient(110deg, var(--color-surface-sunken) 30%, var(--color-surface) 50%, var(--color-surface-sunken) 70%);
+  background-size: 250% 100%;
+  animation: explore-shimmer 1.6s linear infinite;
+  --logo-gap: var(--color-surface-sunken);
+}
+.explore__loading-mark { animation: explore-breathe 1.6s var(--ease-in-out) infinite; }
+@keyframes explore-shimmer { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+@keyframes explore-breathe { 50% { opacity: 0.55; transform: scale(0.96); } }
+
+@media (max-width: 370px) {
+  .explore { padding-left: var(--space-3); padding-right: var(--space-3); }
+  .explore__pills .pill { padding: 0 10px; gap: 6px; font-size: var(--text-sm); }
+}
+@media (max-height: 620px) {
+  .explore__header { min-height: 52px; }
+  .explore__pills { margin-bottom: var(--space-2); }
+}
+@media (min-width: 900px) {
+  .explore { height: 100dvh; max-width: 500px; padding-top: calc(var(--safe-top) + var(--space-4)); padding-bottom: var(--space-6); }
+  .explore__stage { max-height: 860px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .explore__loading-card, .explore__loading-mark { animation: none; }
+}
+@media (max-width: 359px) {
+  .explore__pills .pill svg { display: none; }
+  .explore__pills { gap: 6px; }
+}

@@ -2,6 +2,7 @@ import { createMatchFromLikes, snapshotFor } from '../../domain/matching';
 import type { ID, Like, Match, Message, Pass } from '../../domain/types';
 import { storage } from '../../storage/storage';
 import { STORAGE_KEYS as K } from '../../storage/keys';
+import { rankCandidates } from '../../recommendation';
 import { createId } from '../../utils/id';
 import { StorageFullError, type Repositories } from '../types';
 import { createLocalAccountRepository } from './accountRepo';
@@ -101,6 +102,29 @@ export function createLocalRepositories(): Repositories {
             passes: localDb.passes().filter((p) => p.fromUserId === me),
             dailyPicks: localDb.dailyPicks(),
           };
+        }),
+      getFeedPage: ({ sort, limit, exclude }) =>
+        withLatency(() => {
+          const user = currentUser();
+          const viewer = localDb.profiles().find((p) => p.id === user.profileId);
+          const prefs = localDb.preferences();
+          if (!viewer || !prefs) throw new Error('Finish your profile to see people.');
+          const blocked = localDb.blockedUserIds();
+          const matched = new Set(localDb.matches().filter((m) => m.userIds.includes(user.id)).flatMap((m) => m.userIds));
+          const decided = new Set([
+            ...localDb.likes().filter((l) => l.fromUserId === user.id).map((l) => l.toProfileId),
+            ...localDb.passes().filter((p) => p.fromUserId === user.id).map((p) => p.toProfileId),
+          ]);
+          const skip = new Set(exclude);
+          const pool = localDb.profiles().filter((p) => p.userId !== user.id && !blocked.has(p.userId) && !matched.has(p.userId) && !decided.has(p.id) && !skip.has(p.id));
+          const { eligible } = rankCandidates(pool, viewer, prefs);
+          let ordered = eligible;
+          if (sort === 'nearby') ordered = [...eligible].sort((a, b) => a.distanceKm - b.distanceKm || b.score.total - a.score.total);
+          if (sort === 'standouts') {
+            const byId = new Map(eligible.map((r) => [r.profile.id, r]));
+            ordered = (localDb.dailyPicks()?.profileIds ?? []).flatMap((id) => byId.get(id) ?? []);
+          }
+          return { items: ordered.slice(0, limit), hasMore: ordered.length > limit };
         }),
       sendLike: ({ toProfileId, toUserId, target, comment }) =>
         withLatency(() => {

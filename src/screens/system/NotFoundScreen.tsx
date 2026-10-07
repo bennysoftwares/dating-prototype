@@ -10,7 +10,7 @@ export function NotFoundScreen() {
       <EmptyState
         icon="discover"
         title="This page doesn't exist"
-        action={<Button onClick={() => navigate(ROUTES.discover)}>Back to Discover</Button>}
+        action={<Button onClick={() => navigate(ROUTES.explore)}>Back to Explore</Button>}
       >
         The link may be old or mistyped.
       </EmptyState>

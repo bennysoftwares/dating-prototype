@@ -1,5 +1,6 @@
 import type { ApproxLocation, EducationLevel, Photo, Profile } from '../../domain/types';
 import { daysAgo, hoursAgo } from '../../utils/time';
+import { createGeneratedProfiles } from './generated';
 import { TONES } from './tones';
 
 const GOTHENBURG = { city: 'Gothenburg', country: 'Sweden', lat: 57.71, lng: 11.97 };
@@ -428,8 +429,8 @@ const SEEDS: Seed[] = [
   },
 ];
 
-/** Everyone except the current user. */
+/** Everyone except the current user: the hand-written cast, then the wider generated pool. */
 export function createMockProfiles(nowIso: string): Profile[] {
   const now = new Date(nowIso).getTime();
-  return SEEDS.map((seed) => build(seed, now));
+  return [...SEEDS.map((seed) => build(seed, now)), ...createGeneratedProfiles(now)];
 }

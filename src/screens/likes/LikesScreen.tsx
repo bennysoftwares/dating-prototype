@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ROUTES } from '../../app/navigation';
-import { LikedSnapshot } from '../../components/connections/LikedSnapshot';
 import { Screen } from '../../components/layout';
-import { Avatar, Button, EmptyState, ErrorState, Icon, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import { EmptyState, ErrorState, Icon, LoadingRegion, PhotoFrame, Skeleton, useToast } from '../../components/ui';
+import { LikedSnapshot } from '../../components/connections/LikedSnapshot';
 import { useConnections, type IncomingLike } from '../../connections/ConnectionsProvider';
 import { describeSnapshot } from '../../domain/matching';
 import { formatRelativeShort } from '../../utils/time';
@@ -14,10 +14,10 @@ import './LikesScreen.css';
 export function LikesScreen() {
   const { status, error, incoming, refresh } = useConnections();
   return (
-    <Screen title="Likes">
+    <Screen title="Likes" className="screen--wide">
       {status === 'loading' && (
         <LoadingRegion label="Loading likes">
-          <div className="likes__loading">{[0, 1].map((i) => <Skeleton key={i} height={180} />)}</div>
+          <div className="likes__list">{[0, 1, 2, 3].map((i) => <Skeleton key={i} ratio="3 / 4" className="likes__skeleton" />)}</div>
         </LoadingRegion>
       )}
       {status === 'error' && <ErrorState message={error?.message} onRetry={() => void refresh()} />}
@@ -29,7 +29,7 @@ export function LikesScreen() {
       {status === 'ready' && incoming.length > 0 && (
         <>
           <p className="likes__intro">
-            {incoming.length === 1 ? '1 person likes you.' : `${incoming.length} people like you.`} Match to start talking, or pass. They won't be told either way until you match.
+            {incoming.length === 1 ? '1 person likes you.' : `${incoming.length} people like you.`} Match to start talking, or pass. They're only told if you match.
           </p>
           <ul className="likes__list" role="list">
             {incoming.map((item) => (
@@ -75,44 +75,51 @@ function IncomingLikeCard({ item }: { item: IncomingLike }) {
     }
   };
 
+  const verified = from.verification?.photo === 'verified';
   return (
     <article className="like-card" aria-label={`${from.firstName} liked ${what}`}>
       <Link to={ROUTES.likeProfile(like.id)} className="like-card__person">
-        <Avatar photo={from.photos[0]} name={from.firstName} size={64} />
-        <span className="like-card__who">
-          <span className="like-card__name">
-            {from.firstName}, {profileAge(from)}
+        <PhotoFrame photo={from.photos[0]} ratio="3 / 4" rounded="none" monogram={from.firstName.charAt(0)} decorative>
+          <div className="like-card__shade" />
+          <span className="like-card__who">
+            <span className="like-card__name">
+              {from.firstName} <span className="like-card__age">{profileAge(from)}</span>
+              {verified && <Icon name="verified" size={20} filled className="like-card__verified" label="Photo verified" />}
+            </span>
+            <span className="like-card__place">{from.location.city}</span>
           </span>
-          <span className="like-card__what">
-            Liked {what} · <time dateTime={like.createdAt}>{formatRelativeShort(like.createdAt)}</time>
-          </span>
-        </span>
-        <span className="like-card__view">
-          <span className="visually-hidden">View profile</span>
-          <Icon name="chevronRight" size={20} />
-        </span>
+        </PhotoFrame>
+        <span className="visually-hidden">View profile</span>
       </Link>
 
-      {snapshot.kind !== 'profile' && (
-        <div className="like-card__snapshot">
-          <LikedSnapshot snapshot={snapshot} owner={viewer} compact />
-        </div>
-      )}
-
-      {like.comment && (
-        <p className="like-card__comment">
-          <span className="visually-hidden">{from.firstName} wrote: </span>
-          {like.comment}
+      <div className="like-card__body">
+        <p className="like-card__what">
+          <Icon name="heart" size={14} filled />
+          <span>Liked {what} · <time dateTime={like.createdAt}>{formatRelativeShort(like.createdAt)}</time></span>
         </p>
-      )}
-
-      <div className="like-card__actions">
-        <Button variant="secondary" icon="close" onClick={() => void onPass()} disabled={busy} aria-label={`Pass on ${from.firstName}`}>
-          Pass
-        </Button>
-        <Button icon="heart" onClick={() => void onMatch()} disabled={busy} aria-label={`Match with ${from.firstName}`}>
-          Match
-        </Button>
+        {snapshot.kind === 'prompt' && <p className="like-card__quote">“{snapshot.answer}”</p>}
+        {snapshot.kind === 'photo' && (
+          <div className="like-card__snapshot">
+            <LikedSnapshot snapshot={snapshot} owner={viewer} compact />
+          </div>
+        )}
+        {like.comment && (
+          <p className="like-card__comment">
+            <span className="visually-hidden">{from.firstName} wrote: </span>
+            {like.comment}
+          </p>
+        )}
+        <div className="like-card__actions">
+          <button type="button" className="like-card__btn like-card__btn--pass" onClick={() => void onPass()} disabled={busy}>
+            <Icon name="close" size={22} strokeWidth={2.3} />
+            <span className="visually-hidden">Pass on {from.firstName}</span>
+          </button>
+          <button type="button" className="like-card__btn like-card__btn--match" onClick={() => void onMatch()} disabled={busy}>
+            <Icon name="heart" size={22} filled />
+            <span>Match</span>
+            <span className="visually-hidden"> with {from.firstName}</span>
+          </button>
+        </div>
       </div>
     </article>
   );

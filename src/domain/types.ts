@@ -14,7 +14,7 @@ export type ISODate = string;
 /* Account                                                             */
 /* ------------------------------------------------------------------ */
 
-/** "paused": hidden from Discover; matches and chats keep working. */
+/** "paused": hidden from Explore; matches and chats keep working. */
 export type AccountStatus = 'active' | 'paused';
 
 /** The account behind a profile. Auth-related fields will live here. */
@@ -158,6 +158,11 @@ export interface Preferences {
   politics?: FilterRule<string> | null;
   education?: FilterRule<EducationLevel> | null;
   height?: { minCm: number; maxCm: number; mode: FilterMode } | null;
+  /** Profile-quality filters (always strict when on). Missing means off / no minimum. */
+  verifiedOnly?: boolean;
+  requireBio?: boolean;
+  /** 1–6. */
+  minPhotos?: number;
 }
 
 /* ------------------------------------------------------------------ */

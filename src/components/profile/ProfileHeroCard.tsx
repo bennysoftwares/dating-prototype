@@ -15,7 +15,7 @@ interface ProfileHeroCardProps {
   action?: ReactNode;
 }
 
-/** Large lead photo with name, age and intention. Shared by Discover and Profile. */
+/** Large lead photo with name, age and intention. Used on your own Profile tab. */
 export function ProfileHeroCard({ profile, distanceLabel, as: Tag = 'article', ratio = '4 / 5', action }: ProfileHeroCardProps) {
   const age = profileAge(profile);
   return (

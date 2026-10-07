@@ -9,7 +9,7 @@ import { buildCompatibility } from '../../recommendation/compatibility';
 import { approxDistanceKm, distanceLabel } from '../../utils/profileFormat';
 import { useSticky } from '../../hooks/useSticky';
 import { useBack } from '../onboarding/useStepNavigation';
-import '../discover/DiscoverProfileScreen.css';
+import '../explore/ExploreProfileScreen.css';
 
 /** Your match's full profile, opened from the conversation. */
 export function ChatProfileScreen() {
@@ -25,7 +25,7 @@ export function ChatProfileScreen() {
   if (!convo || !viewer) {
     return (
       <div className="dprofile__missing">
-        <EmptyState icon="chat" title="Profile not available" action={<Button onClick={() => navigate(ROUTES.matches)}>Back to matches</Button>} />
+        <EmptyState icon="chat" title="Profile not available" action={<Button onClick={() => navigate(ROUTES.chats)}>Back to chats</Button>} />
       </div>
     );
   }
@@ -43,7 +43,7 @@ export function ChatProfileScreen() {
       <main className="dprofile__body">
         <ProfileView profile={other} distanceLabel={distanceLabel(other, approxDistanceKm(viewer.location, other.location))} compatibility={buildCompatibility(viewer, other)} />
       </main>
-      <SafetySheet person={other} matchId={matchId} open={safetyOpen} onClose={() => setSafetyOpen(false)} onDone={() => navigate(ROUTES.matches, { replace: true })} />
+      <SafetySheet person={other} matchId={matchId} open={safetyOpen} onClose={() => setSafetyOpen(false)} onDone={() => navigate(ROUTES.chats, { replace: true })} />
       <footer className="dprofile__actions">
         <Button size="lg" icon="chat" onClick={() => back(ROUTES.chat(matchId))} className="dprofile__like">
           Message {other.firstName}

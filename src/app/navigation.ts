@@ -6,25 +6,27 @@ export interface NavItem {
   icon: IconName;
 }
 
-/** The four primary sections. Do not add more tabs. */
+/** The five primary sections. */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { to: '/discover', label: 'Discover', icon: 'discover' },
+  { to: '/explore', label: 'Explore', icon: 'cards' },
+  { to: '/standouts', label: 'Standouts', icon: 'star' },
   { to: '/likes', label: 'Likes', icon: 'heart' },
-  { to: '/matches', label: 'Matches', icon: 'chat' },
+  { to: '/chats', label: 'Chats', icon: 'chat' },
   { to: '/profile', label: 'Profile', icon: 'user' },
 ];
 
 export const ROUTES = {
-  discover: '/discover',
+  explore: '/explore',
+  standouts: '/standouts',
   likes: '/likes',
-  matches: '/matches',
+  chats: '/chats',
   profile: '/profile',
-  discoverProfile: (profileId: string) => `/discover/${profileId}`,
+  exploreProfile: (profileId: string) => `/explore/${profileId}`,
   likeProfile: (likeId: string) => `/likes/${likeId}`,
   matchCelebration: (matchId: string) => `/match/${matchId}`,
-  chat: (matchId: string) => `/matches/${matchId}`,
-  chatProfile: (matchId: string) => `/matches/${matchId}/profile`,
-  archived: '/matches/archived',
+  chat: (matchId: string) => `/chats/${matchId}`,
+  chatProfile: (matchId: string) => `/chats/${matchId}/profile`,
+  archived: '/chats/archived',
   settings: '/settings',
   filters: '/settings/filters',
   privacy: '/settings/privacy',

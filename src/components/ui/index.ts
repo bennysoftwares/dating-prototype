@@ -6,6 +6,7 @@ export { EmptyState } from './EmptyState';
 export { ErrorState, LoadingRegion, Skeleton } from './Feedback';
 export { Icon, type IconName } from './Icon';
 export { ListGroup, ListRow } from './ListRow';
+export { SettingsCard } from './SettingsCard';
 export { PhotoFrame } from './PhotoFrame';
 export { SegmentedControl } from './SegmentedControl';
 export { ActionList, type Action } from './ActionList';

@@ -73,7 +73,7 @@ export function ChatScreen() {
   if (!convo || !viewer) {
     return (
       <div className="chat__missing">
-        <EmptyState icon="chat" title="Conversation not found" action={<Button onClick={() => navigate(ROUTES.matches, { replace: true })}>Back to matches</Button>} />
+        <EmptyState icon="chat" title="Conversation not found" action={<Button onClick={() => navigate(ROUTES.chats, { replace: true })}>Back to matches</Button>} />
       </div>
     );
   }
@@ -120,13 +120,13 @@ export function ChatScreen() {
     setMenuOpen(false);
     await setArchived(match.id, value);
     toast({ message: value ? `Archived your chat with ${other.firstName}` : `${other.firstName} is back in your matches` });
-    if (value) navigate(ROUTES.matches, { replace: true });
+    if (value) navigate(ROUTES.chats, { replace: true });
   };
 
   return (
     <div className="chat">
       <header className="chat__top">
-        <IconButton icon="chevronLeft" label="Back to matches" onClick={() => back(ROUTES.matches)} />
+        <IconButton icon="chevronLeft" label="Back to matches" onClick={() => back(ROUTES.chats)} />
         <button type="button" className="chat__who" onClick={() => navigate(ROUTES.chatProfile(match.id))}>
           <Avatar photo={other.photos[0]} name={other.firstName} size={36} decorative />
           <span>{other.firstName}</span>
@@ -272,7 +272,7 @@ export function ChatScreen() {
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         matchId={match.id}
-        onDone={() => navigate(ROUTES.matches, { replace: true })}
+        onDone={() => navigate(ROUTES.chats, { replace: true })}
         extraActions={[
           { label: 'View profile', icon: 'user', onSelect: () => { setMenuOpen(false); navigate(ROUTES.chatProfile(match.id)); } },
           ...(convo.established ? [{ label: 'Plan a date', icon: 'calendar' as const, onSelect: () => openPlan() }] : []),

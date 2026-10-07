@@ -27,8 +27,9 @@ import {
  * v3: discovery. ~28 mock profiles with activity data; likes, passes, daily picks.
  * v4: matching & messaging. Received likes, match contexts, read markers, drafts.
  * v5: safety, privacy, verification, dates. Blocks, reports, date plans, private feedback.
+ * v6: TurtleDoves. ~300 more generated people so Explore is a real, continuous feed.
  */
-export const DB_SCHEMA_VERSION = 5;
+export const DB_SCHEMA_VERSION = 6;
 
 interface DbMeta {
   schemaVersion: number;
@@ -47,9 +48,19 @@ export const localDb = {
   ensureSeeded(): void {
     const meta = storage.get<DbMeta | null>(K.dbMeta.key, null);
     if (meta?.schemaVersion === DB_SCHEMA_VERSION && this.user()) return;
+    if (meta?.schemaVersion === 5 && this.user()) return this.migrateFromV5();
     if (meta?.schemaVersion === 4 && this.user()) return this.migrateFromV4();
     if ((meta?.schemaVersion === 2 || meta?.schemaVersion === 3) && this.user()) return this.migrate(meta.schemaVersion);
     this.reset();
+  },
+
+  /** v5 → v6: keep everything; add the generated people (existing people keep their ids). */
+  migrateFromV5(): void {
+    const seed = createSeed();
+    const user = this.user()!;
+    const own = this.profiles().find((p) => p.userId === user.id);
+    storage.set(K.dbProfiles.key, own ? [own, ...seed.profiles] : seed.profiles, K.dbProfiles.version);
+    storage.set<DbMeta>(K.dbMeta.key, { schemaVersion: DB_SCHEMA_VERSION, seededAt: new Date().toISOString() });
   },
 
   /** v4 → v5: keep everything the user did; refresh mock people so they gain Part 5 fields. */

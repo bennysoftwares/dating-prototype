@@ -199,7 +199,7 @@ export function SafetySheet({ person, open, onClose, matchId, extraActions = [],
 
         {step === 'unmatch' && (
           <div className="safety__copy">
-            <p>This removes your match and conversation with {name}. It can't be undone, and they won't appear in Discover again.</p>
+            <p>This removes your match and conversation with {name}. It can't be undone, and they won't appear in Explore again.</p>
             <p>If something felt wrong, you can report them instead. Reporting is private.</p>
             <Button variant="secondary" size="sm" icon="flag" onClick={() => setStep('report-category')}>Report {name} instead</Button>
           </div>

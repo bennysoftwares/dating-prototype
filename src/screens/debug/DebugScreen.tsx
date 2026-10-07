@@ -147,7 +147,7 @@ export function DebugScreen() {
 
       <Section title="Recommendations" description="Scores are for development only. People never see numbers.">
         <div className="debug__actions">
-          <Button variant="secondary" icon="refresh" onClick={() => { localDb.writeDailyPicks(null); setRecVersion((v) => v + 1); }} block>Regenerate today's picks</Button>
+          <Button variant="secondary" icon="refresh" onClick={() => { localDb.writeDailyPicks(null); setRecVersion((v) => v + 1); }} block>Regenerate today's Standouts</Button>
           <Button variant="secondary" icon="undo" onClick={() => { localDb.resetDiscovery(); setRecVersion((v) => v + 1); }} block>Reset likes, passes and picks</Button>
         </div>
         <DebugRecommendations version={recVersion} />

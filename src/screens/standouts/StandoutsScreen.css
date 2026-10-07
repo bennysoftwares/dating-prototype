@@ -1,0 +1,35 @@
+.standouts__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); list-style: none; margin: 0; padding: 0; }
+.standout--feature { grid-column: 1 / -1; }
+.standout__link { display: block; border-radius: var(--radius-xl); box-shadow: var(--shadow-md); transition: transform var(--duration-base) var(--ease-out); }
+.standout__link:active { transform: scale(0.98); }
+.standout__link:focus-visible { outline-offset: 3px; border-radius: var(--radius-xl); }
+.standout__shade { position: absolute; inset: 0; background: var(--photo-gradient); }
+.standout__info { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-direction: column; gap: 2px; color: var(--color-on-photo); }
+.standout--feature .standout__info { left: 20px; right: 20px; bottom: 20px; gap: var(--space-1); }
+.standout__name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.3em;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.standout--feature .standout__name { font-size: clamp(2rem, 9vw, 2.5rem); }
+.standout__age { font-family: var(--font-body); font-size: 0.75em; font-weight: var(--weight-regular); }
+.standout__verified { align-self: center; color: var(--color-verified); }
+.standout__meta { font-size: var(--text-sm); color: rgba(255, 250, 245, 0.88); }
+.standout__reason { display: flex; align-items: flex-start; gap: 6px; font-size: var(--text-sm); line-height: 1.3; }
+.standout__reason svg { flex: none; margin-top: 2px; color: var(--color-verified); }
+.standout__reason span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.standout:not(.standout--feature) .standout__reason { display: none; }
+
+@media (min-width: 720px) {
+  .standouts__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .standout--feature { grid-column: span 2; grid-row: span 2; }
+  .standout--feature .photo { aspect-ratio: auto !important; height: 100%; }
+  .standout--feature .standout__link { height: 100%; }
+  .standout:not(.standout--feature) .standout__reason { display: flex; }
+}

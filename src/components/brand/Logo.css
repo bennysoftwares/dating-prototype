@@ -1,8 +1,5 @@
-.logo { display: inline-flex; align-items: center; gap: var(--space-2); }
-.logo-mark { flex: none; }
-.logo__name {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
-}
+.logo { display: inline-flex; align-items: center; gap: 8px; color: var(--color-text); }
+.wordmark { flex: none; display: block; color: var(--color-text); }
+.logo-mark { flex: none; overflow: visible; }
+/* Thin gaps between feathers, in the colour of whatever sits behind the mark. */
+.logo-mark__feathers { stroke: var(--logo-gap, var(--color-bg)); stroke-width: 0.9; stroke-linejoin: round; }
