@@ -133,7 +133,19 @@ export interface Preferences {
 /* Matches & messages                                                  */
 /* ------------------------------------------------------------------ */
 
+/** Stored status. "Inactive" is derived from time since last activity, never stored or enforced. */
 export type MatchStatus = 'active' | 'inactive' | 'archived';
+
+/** What one person liked when the match formed, kept so context carries into the chat. */
+export interface MatchContext {
+  fromUserId: ID;
+  /** Whose photo or prompt was liked. */
+  aboutUserId: ID;
+  target: LikeTarget;
+  snapshot: LikeSnapshot;
+  comment?: string;
+  at: ISODateTime;
+}
 
 export interface Match {
   id: ID;
@@ -142,8 +154,19 @@ export interface Match {
   createdAt: ISODateTime;
   lastActivityAt: ISODateTime;
   status: MatchStatus;
-  /** Human-readable reason the match happened, e.g. what each person liked. */
+  /** Legacy free-text context (Part 1 mock data). */
   context?: string;
+  /** Both people's likes, including any comments. */
+  contexts?: MatchContext[];
+  /** Set when the user archives the conversation. Archived chats stay recoverable. */
+  archivedAt?: ISODateTime | null;
+  /** "Keep for later" on the Still interested? prompt. */
+  keptForLaterAt?: ISODateTime | null;
+  /**
+   * Private read markers, per user, used only to show *your own* unread state.
+   * Never shown to the other person (no read receipts by default).
+   */
+  lastReadAt?: Partial<Record<ID, ISODateTime>>;
 }
 
 export type MessageKind = 'text' | 'photo' | 'voice';
@@ -155,6 +178,12 @@ export interface Message {
   kind: MessageKind;
   body: string;
   sentAt: ISODateTime;
+  /** A like comment carried into the chat, quoting what was liked. */
+  likeContext?: { aboutUserId: ID; snapshot: LikeSnapshot };
+  /** Photo-message placeholder (no upload yet). */
+  photo?: { tone: readonly [string, string] };
+  /** Voice-note placeholder (no audio yet). */
+  voice?: { durationSec: number };
 }
 
 /* ------------------------------------------------------------------ */
@@ -167,12 +196,24 @@ export type LikeTarget =
   | { kind: 'photo'; photoId: ID }
   | { kind: 'prompt'; promptId: ID };
 
+/**
+ * A copy of what was liked, so the context survives later profile edits.
+ * Photos keep only id + tone; the image itself is resolved from the profile.
+ */
+export type LikeSnapshot =
+  | { kind: 'profile' }
+  | { kind: 'photo'; photoId: ID; tone: readonly [string, string] }
+  | { kind: 'prompt'; prompt: string; answer: string };
+
 export interface Like {
   id: ID;
   fromUserId: ID;
+  /** Set on received likes so the liker's profile can be shown. */
+  fromProfileId?: ID;
   toUserId: ID;
   toProfileId: ID;
   target: LikeTarget;
+  snapshot?: LikeSnapshot;
   /** Optional message sent with the like. */
   comment?: string;
   createdAt: ISODateTime;

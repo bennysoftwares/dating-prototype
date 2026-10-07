@@ -1,6 +1,5 @@
-import type { DailyPicks, Like, Pass, Preferences, User } from '../../domain/types';
+import type { DailyPicks, Like, Match, Message, Pass, Preferences, User } from '../../domain/types';
 import { daysAgo } from '../../utils/time';
-import { createMockMatches, createMockMessages } from './conversations';
 import { CURRENT_PROFILE_ID, CURRENT_USER_ID, createMockProfiles } from './profiles';
 
 export { CURRENT_PROFILE_ID, CURRENT_USER_ID, createDemoProfile } from './profiles';
@@ -41,8 +40,9 @@ export function createSeed(now = Date.now()) {
     user: createCurrentUser(now),
     preferences: null as Preferences | null,
     profiles: createMockProfiles(iso),
-    matches: createMockMatches(now),
-    messages: createMockMessages(now),
+    // Connections are seeded after onboarding, relative to the user's own profile.
+    matches: [] as Match[],
+    messages: [] as Message[],
     likes: [] as Like[],
     passes: [] as Pass[],
     dailyPicks: null as DailyPicks | null,
@@ -50,3 +50,5 @@ export function createSeed(now = Date.now()) {
 }
 
 export type Seed = ReturnType<typeof createSeed>;
+
+export { createMockConnections } from './connections';

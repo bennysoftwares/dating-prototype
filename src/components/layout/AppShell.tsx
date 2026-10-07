@@ -1,10 +1,12 @@
 import { Outlet, useLocation } from 'react-router';
+import { useConnections } from '../../connections/ConnectionsProvider';
 import { BottomNav } from './BottomNav';
 import './AppShell.css';
 
 /** Persistent frame: skip link, routed content and primary navigation. */
 export function AppShell() {
   const location = useLocation();
+  const { pendingLikeCount, unreadConversationCount } = useConnections();
   return (
     <div className="shell">
       <a href="#main" className="shell__skip" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>
@@ -16,7 +18,7 @@ export function AppShell() {
           <Outlet />
         </div>
       </main>
-      <BottomNav />
+      <BottomNav badges={{ '/likes': pendingLikeCount, '/matches': unreadConversationCount }} />
     </div>
   );
 }

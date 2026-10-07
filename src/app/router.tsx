@@ -1,7 +1,13 @@
 import { createHashRouter, Navigate, Outlet } from 'react-router';
 import { AppShell } from '../components/layout/AppShell';
 import { DebugScreen } from '../screens/debug/DebugScreen';
+import { ConnectionsProvider } from '../connections/ConnectionsProvider';
 import { DiscoveryProvider } from '../discovery/DiscoveryProvider';
+import { LikeProfileScreen } from '../screens/likes/LikeProfileScreen';
+import { ArchivedScreen } from '../screens/matches/ArchivedScreen';
+import { ChatProfileScreen } from '../screens/matches/ChatProfileScreen';
+import { ChatScreen } from '../screens/matches/ChatScreen';
+import { MatchCelebrationScreen } from '../screens/matches/MatchCelebrationScreen';
 import { DiscoverProfileScreen } from '../screens/discover/DiscoverProfileScreen';
 import { DiscoverScreen } from '../screens/discover/DiscoverScreen';
 import { LikesScreen } from '../screens/likes/LikesScreen';
@@ -43,9 +49,11 @@ export const router = createHashRouter([
       {
         element: (
           <SessionGate mode="member">
-            <DiscoveryProvider>
-              <Outlet />
-            </DiscoveryProvider>
+            <ConnectionsProvider>
+              <DiscoveryProvider>
+                <Outlet />
+              </DiscoveryProvider>
+            </ConnectionsProvider>
           </SessionGate>
         ),
         children: [
@@ -55,6 +63,7 @@ export const router = createHashRouter([
               { path: ROUTES.discover, element: <DiscoverScreen /> },
               { path: ROUTES.likes, element: <LikesScreen /> },
               { path: ROUTES.matches, element: <MatchesScreen /> },
+              { path: ROUTES.archived, element: <ArchivedScreen /> },
               { path: ROUTES.profile, element: <ProfileScreen /> },
               { path: ROUTES.profileEdit, element: <ProfileEditScreen /> },
               { path: ROUTES.profilePreview, element: <ProfilePreviewScreen /> },
@@ -62,6 +71,10 @@ export const router = createHashRouter([
           },
           // Full-screen views (no tab bar, primary actions in thumb reach).
           { path: '/discover/:profileId', element: <DiscoverProfileScreen /> },
+          { path: '/likes/:likeId', element: <LikeProfileScreen /> },
+          { path: '/match/:matchId', element: <MatchCelebrationScreen /> },
+          { path: '/matches/:matchId', element: <ChatScreen /> },
+          { path: '/matches/:matchId/profile', element: <ChatProfileScreen /> },
           { path: '/profile/edit/:stepId', element: <ProfileEditStepScreen /> },
         ],
       },

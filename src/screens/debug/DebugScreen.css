@@ -37,3 +37,4 @@
 .debug__rec-body td:nth-child(2) { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .debug__rec-body ul { margin: 0; padding-left: var(--space-4); display: grid; gap: 2px; }
 .debug__fail { color: var(--color-danger); }
+.debug__tool-result { padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-accent-soft); color: var(--color-accent-soft-text); font-size: var(--text-sm); }

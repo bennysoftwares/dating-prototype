@@ -6,6 +6,7 @@ import { Button, Card, IconButton, ListGroup, ListRow, SegmentedControl } from '
 import { brand } from '../../config/brand';
 import { createDemoPreferences, createDemoProfile } from '../../data/mock';
 import { profileToDraft } from '../../onboarding/draft';
+import { debugTools } from '../../repositories/local/debugTools';
 import { DB_SCHEMA_VERSION, localDb } from '../../repositories/local/localDb';
 import { STORAGE_KEYS } from '../../storage/keys';
 import { storage } from '../../storage/storage';
@@ -23,6 +24,15 @@ export function DebugScreen() {
   const { preference, resolved, setPreference } = useTheme();
   const [keys, setKeys] = useState(() => storage.keys());
   const [recVersion, setRecVersion] = useState(0);
+  const [toolMessage, setToolMessage] = useState<string | null>(null);
+  const runTool = (fn: () => string) => {
+    try {
+      setToolMessage(fn());
+    } catch (err) {
+      setToolMessage(err instanceof Error ? err.message : String(err));
+    }
+    setRecVersion((v) => v + 1);
+  };
 
   useEffect(() => storage.subscribe(() => setKeys(storage.keys())), []);
 
@@ -97,6 +107,19 @@ export function DebugScreen() {
           <Button variant="secondary" icon="refresh" onClick={restartOnboarding} block>Restart onboarding (blank)</Button>
           <Button variant="secondary" icon="edit" onClick={prefillDraft} block>Prefill onboarding with Alex</Button>
         </div>
+      </Section>
+
+      <Section title="Likes, matches & messages" description="Simulate the other person. Nothing leaves this device.">
+        <div className="debug__actions">
+          <Button variant="secondary" icon="heart" onClick={() => runTool(() => debugTools.createIncomingLike(false))} block>Create incoming like</Button>
+          <Button variant="secondary" icon="heart" onClick={() => runTool(() => debugTools.createIncomingLike(true))} block>Create incoming like with comment</Button>
+          <Button variant="secondary" icon="sparkle" onClick={() => runTool(() => debugTools.forceMutualMatch())} block>Force mutual match</Button>
+          <Button variant="secondary" icon="chat" onClick={() => runTool(() => debugTools.simulateReply())} block>Simulate reply (latest chat, unread)</Button>
+          <Button variant="secondary" icon="undo" onClick={() => runTool(() => debugTools.makeQuiet(6))} block>Make latest chat quiet 6 days (Still interested?)</Button>
+          <Button variant="secondary" icon="archive" onClick={() => runTool(() => debugTools.makeQuiet(20))} block>Make latest chat inactive (20 days)</Button>
+          <Button variant="quiet" icon="refresh" onClick={() => runTool(() => debugTools.resetConversations())} block>Reset likes received, matches & messages</Button>
+        </div>
+        {toolMessage && <p className="debug__tool-result" role="status">{toolMessage}</p>}
       </Section>
 
       <Section title="Recommendations" description="Scores are for development only. People never see numbers.">

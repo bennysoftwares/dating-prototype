@@ -28,9 +28,38 @@ export interface ProfileRepository {
   listCandidates(): Promise<Profile[]>;
 }
 
+export interface NewMessage {
+  kind: Message['kind'];
+  body: string;
+  photo?: Message['photo'];
+  voice?: Message['voice'];
+}
+
 export interface MatchRepository {
+  /** All of the user's matches, including archived ones. Matches never expire. */
   listMatches(): Promise<Match[]>;
   listMessages(matchId: ID): Promise<Message[]>;
+  /** Every message across the user's matches (for previews and unread state). */
+  listAllMessages(): Promise<Message[]>;
+  sendMessage(matchId: ID, input: NewMessage): Promise<Message>;
+  /** Private read marker for the current user. Never exposed as a read receipt. */
+  markRead(matchId: ID): Promise<void>;
+  setArchived(matchId: ID, archived: boolean): Promise<Match>;
+  /** "Keep for later" on the Still interested? prompt. */
+  keepForLater(matchId: ID): Promise<Match>;
+  /**
+   * Notify when likes, matches or messages change (other tabs, debug tools).
+   * A real backend would use realtime subscriptions here.
+   */
+  subscribe(onChange: () => void): () => void;
+}
+
+/** Likes other people sent to the current user. */
+export interface IncomingLikeRepository {
+  /** All received likes; the UI derives which are still pending. */
+  listReceived(): Promise<Like[]>;
+  /** Accept (creating a mutual match) or pass. */
+  respond(likeId: ID, response: 'match' | 'pass'): Promise<Match | null>;
 }
 
 export interface DiscoveryState {
@@ -45,7 +74,8 @@ export interface DiscoveryState {
  */
 export interface DiscoveryRepository {
   getState(): Promise<DiscoveryState>;
-  sendLike(input: { toProfileId: ID; toUserId: ID; target: LikeTarget; comment?: string }): Promise<Like>;
+  /** If they already liked you, this creates a mutual match and returns it. */
+  sendLike(input: { toProfileId: ID; toUserId: ID; target: LikeTarget; comment?: string }): Promise<{ like: Like; match: Match | null }>;
   pass(toProfileId: ID): Promise<Pass>;
   /** Remove a pass so the person can be seen again (one-step undo). */
   undoPass(passId: ID): Promise<void>;
@@ -56,6 +86,7 @@ export interface Repositories {
   users: UserRepository;
   profiles: ProfileRepository;
   matches: MatchRepository;
+  incomingLikes: IncomingLikeRepository;
   discovery: DiscoveryRepository;
 }
 
