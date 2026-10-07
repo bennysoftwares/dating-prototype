@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Profile } from '../../domain/types';
 import { intentLabel, profileAge } from '../../utils/profileFormat';
 import { Icon } from '../ui/Icon';
@@ -9,14 +10,17 @@ interface ProfileHeroCardProps {
   /** Approximate distance label, e.g. "8 km away". */
   distanceLabel?: string;
   as?: 'div' | 'article';
+  ratio?: string;
+  /** e.g. a contextual like button for the lead photo. */
+  action?: ReactNode;
 }
 
 /** Large lead photo with name, age and intention. Shared by Discover and Profile. */
-export function ProfileHeroCard({ profile, distanceLabel, as: Tag = 'article' }: ProfileHeroCardProps) {
+export function ProfileHeroCard({ profile, distanceLabel, as: Tag = 'article', ratio = '4 / 5', action }: ProfileHeroCardProps) {
   const age = profileAge(profile);
   return (
-    <Tag className="hero-card" aria-label={`${profile.firstName}, ${age}`}>
-      <PhotoFrame photo={profile.photos[0]} ratio="4 / 5" rounded="xl" monogram={profile.firstName.charAt(0)}>
+    <Tag className={action ? 'hero-card hero-card--has-action' : 'hero-card'} aria-label={`${profile.firstName}, ${age}`}>
+      <PhotoFrame photo={profile.photos[0]} ratio={ratio} rounded="xl" monogram={profile.firstName.charAt(0)}>
         <div className="hero-card__scrim" />
         <div className="hero-card__info">
           <h2 className="hero-card__name">
@@ -34,6 +38,7 @@ export function ProfileHeroCard({ profile, distanceLabel, as: Tag = 'article' }:
             {intentLabel(profile)}
           </p>
         </div>
+        {action}
       </PhotoFrame>
     </Tag>
   );

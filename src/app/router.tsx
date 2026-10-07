@@ -1,6 +1,8 @@
-import { createHashRouter, Navigate } from 'react-router';
+import { createHashRouter, Navigate, Outlet } from 'react-router';
 import { AppShell } from '../components/layout/AppShell';
 import { DebugScreen } from '../screens/debug/DebugScreen';
+import { DiscoveryProvider } from '../discovery/DiscoveryProvider';
+import { DiscoverProfileScreen } from '../screens/discover/DiscoverProfileScreen';
 import { DiscoverScreen } from '../screens/discover/DiscoverScreen';
 import { LikesScreen } from '../screens/likes/LikesScreen';
 import { MatchesScreen } from '../screens/matches/MatchesScreen';
@@ -39,7 +41,13 @@ export const router = createHashRouter([
 
       // Signed in with a finished profile.
       {
-        element: <SessionGate mode="member" />,
+        element: (
+          <SessionGate mode="member">
+            <DiscoveryProvider>
+              <Outlet />
+            </DiscoveryProvider>
+          </SessionGate>
+        ),
         children: [
           {
             element: <AppShell />,
@@ -52,7 +60,8 @@ export const router = createHashRouter([
               { path: ROUTES.profilePreview, element: <ProfilePreviewScreen /> },
             ],
           },
-          // Full-screen editors (no tab bar, primary action in thumb reach).
+          // Full-screen views (no tab bar, primary actions in thumb reach).
+          { path: '/discover/:profileId', element: <DiscoverProfileScreen /> },
           { path: '/profile/edit/:stepId', element: <ProfileEditStepScreen /> },
         ],
       },

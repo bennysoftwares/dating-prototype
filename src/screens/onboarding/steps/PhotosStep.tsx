@@ -3,7 +3,8 @@ import { ActionList, BottomSheet, Icon, PhotoFrame, type Action } from '../../..
 import { TONES } from '../../../data/mock/tones';
 import { PROFILE_LIMITS as L } from '../../../domain/profileOptions';
 import type { Photo } from '../../../domain/types';
-import { createId, resizeImageFile } from '../../../utils/image';
+import { createId } from '../../../utils/id';
+import { resizeImageFile } from '../../../utils/image';
 import type { StepProps } from './types';
 import './steps.css';
 

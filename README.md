@@ -23,11 +23,23 @@ A fresh account starts at the Welcome screen:
 
 After onboarding, **Profile → Edit profile** reopens any answer using the same step screens.
 
+## Discovery
+
+**Discover** shows *Today's picks*: a small curated set (up to 12) chosen around your preferences, each with plain-language reasons (“You both want a long-term relationship”, “4 shared interests”, “12 km away”). There are no percentages or scores.
+
+- Open a pick to read the full profile. Like a specific photo or prompt answer (optionally with a message), like the whole profile, or pass. Undo is available for your last pass (one step).
+- Once today's set has been seen, **Explore more** shows the remaining eligible people. It's never hard-locked.
+- Recommendations live in `src/recommendation/` as pure functions: hard filters (who you want to meet, hard max distance, dealbreakers) run first and exclude; then a transparent score ranks people on intention, distance, age, shared interests, soft preferences, lifestyle fit, recent activity and profile depth.
+- Hidden profile fields are never used in compatibility text. For a dealbreaker, a hidden answer counts as “can't confirm” and excludes.
+
 ## Hidden developer panel
 
 Open `#/debug`, or tap the version line at the bottom of **Profile** five times quickly.
 It shows build/data info, live safe-area values, theme controls and every stored key, plus actions to
 load the demo user, restart onboarding, prefill onboarding with Alex, and reset all demo data.
+The **Recommendations** section shows every candidate's final score, score breakdown, soft
+preferences matched/missed, and every hard filter checked, with actions to regenerate today's picks
+or reset likes and passes.
 
 ## GitHub Pages
 
@@ -46,18 +58,20 @@ src/
   theme/          Light/dark/system theme provider
   session/        Signed-in account (decides onboarding vs. app)
   onboarding/     Draft model, validation, persisted draft hook
+  discovery/      DiscoveryProvider: today's picks, likes, passes, one-step undo
   components/
     ui/           Button, Chip, Card, PhotoFrame, ListRow, EmptyState, Skeleton, BottomSheet…
     form/         TextField, ChoiceList, ChipSelect, Switch, VisibilityToggle, RangeField, ModeToggle
     layout/       AppShell, BottomNav (rail on desktop), Screen, Section
     profile/      ProfileView (full vertical profile), ProfileHeroCard, PromptCard
+    discovery/    PickCard, LikeButton, LikeSheet, CompatibilitySection
     brand/        Logo
-  screens/        onboarding (welcome, steps, preview), discover, likes, matches,
+  screens/        onboarding (welcome, steps, preview), discover (picks, profile), likes, matches,
                   profile (tab, edit, preview), debug, system (gate, 404, route error)
   domain/         Types, intents, interests, profile options (prompts, limits…), cities
   data/mock/      Seed data
   repositories/   Async repository interfaces + localStorage implementation
   storage/        Versioned, namespaced localStorage wrapper + useStoredState hook
-  recommendation/ Ranking logic (placeholder until Part 3)
+  recommendation/ Hard filters, scoring, compatibility, daily picks (pure functions)
   hooks/ utils/
 ```

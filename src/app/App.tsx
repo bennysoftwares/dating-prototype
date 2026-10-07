@@ -1,4 +1,5 @@
 import { RouterProvider } from 'react-router';
+import { ToastProvider } from '../components/ui/Toast';
 import { RepositoryProvider } from '../repositories/RepositoryContext';
 import { SessionProvider } from '../session/SessionProvider';
 import { ThemeProvider } from '../theme/ThemeProvider';
@@ -9,7 +10,9 @@ export function App() {
     <ThemeProvider>
       <RepositoryProvider>
         <SessionProvider>
-          <RouterProvider router={router} />
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
         </SessionProvider>
       </RepositoryProvider>
     </ThemeProvider>

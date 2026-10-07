@@ -19,3 +19,4 @@
   line-height: var(--leading-snug);
   letter-spacing: -0.01em;
 }
+.prompt-card__action { display: flex; justify-content: flex-end; margin-top: calc(var(--space-2) * -1); }

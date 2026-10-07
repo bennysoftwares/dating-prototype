@@ -26,7 +26,7 @@
   color: var(--color-bg);
   transform: translateY(-200%);
 }
-.shell__skip:focus { transform: none; }
+.shell__skip:focus-visible { transform: none; }
 
 @media (min-width: 900px) {
   .shell { padding-left: calc(var(--rail-width) + var(--safe-left)); }

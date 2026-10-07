@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { TextArea } from '../../../components/form';
 import { BottomSheet, Button, Icon } from '../../../components/ui';
 import { PROFILE_LIMITS as L, PROFILE_PROMPTS } from '../../../domain/profileOptions';
-import { createId } from '../../../utils/image';
+import { createId } from '../../../utils/id';
 import type { StepProps } from './types';
 import './steps.css';
 

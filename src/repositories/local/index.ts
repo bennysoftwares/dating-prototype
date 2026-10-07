@@ -1,3 +1,5 @@
+import type { Like, Pass } from '../../domain/types';
+import { createId } from '../../utils/id';
 import { StorageFullError, type Repositories } from '../types';
 import { localDb, withLatency } from './localDb';
 
@@ -49,6 +51,46 @@ export function createLocalRepositories(): Repositories {
           return saved;
         }),
       listCandidates: () => withLatency(() => localDb.profiles().filter((p) => p.userId !== currentUser().id)),
+    },
+    discovery: {
+      getState: () =>
+        withLatency(() => {
+          const me = currentUser().id;
+          return {
+            likes: localDb.likes().filter((l) => l.fromUserId === me),
+            passes: localDb.passes().filter((p) => p.fromUserId === me),
+            dailyPicks: localDb.dailyPicks(),
+          };
+        }),
+      sendLike: ({ toProfileId, toUserId, target, comment }) =>
+        withLatency(() => {
+          const like: Like = {
+            id: createId('like'),
+            fromUserId: currentUser().id,
+            toUserId,
+            toProfileId,
+            target,
+            ...(comment?.trim() ? { comment: comment.trim() } : {}),
+            createdAt: new Date().toISOString(),
+          };
+          ensure(localDb.writeLikes([...localDb.likes().filter((l) => !(l.fromUserId === like.fromUserId && l.toProfileId === toProfileId)), like]));
+          return like;
+        }),
+      pass: (toProfileId) =>
+        withLatency(() => {
+          const pass: Pass = { id: createId('pass'), fromUserId: currentUser().id, toProfileId, createdAt: new Date().toISOString() };
+          ensure(localDb.writePasses([...localDb.passes().filter((p) => !(p.fromUserId === pass.fromUserId && p.toProfileId === toProfileId)), pass]));
+          return pass;
+        }),
+      undoPass: (passId) =>
+        withLatency(() => {
+          ensure(localDb.writePasses(localDb.passes().filter((p) => p.id !== passId)));
+        }),
+      saveDailyPicks: (daily) =>
+        withLatency(() => {
+          ensure(localDb.writeDailyPicks(daily));
+          return daily;
+        }),
     },
     matches: {
       listMatches: () =>

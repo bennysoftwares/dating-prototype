@@ -1,4 +1,4 @@
-import type { Preferences, User } from '../../domain/types';
+import type { DailyPicks, Like, Pass, Preferences, User } from '../../domain/types';
 import { daysAgo } from '../../utils/time';
 import { createMockMatches, createMockMessages } from './conversations';
 import { CURRENT_PROFILE_ID, CURRENT_USER_ID, createMockProfiles } from './profiles';
@@ -25,7 +25,8 @@ export function createDemoPreferences(): Preferences {
     age: { min: 23, max: 32, mode: 'preference' },
     distance: { preferredKm: 30, maxKm: 60 },
     intents: null,
-    smoking: { values: ['never', 'rarely'], mode: 'preference' },
+    // A dealbreaker, so the demo shows hard filtering (regular/social smokers never appear).
+    smoking: { values: ['never', 'rarely'], mode: 'dealbreaker' },
     drinking: null,
     children: null,
     wantsChildren: { values: ['wants', 'open', 'unsure'], mode: 'preference' },
@@ -42,6 +43,9 @@ export function createSeed(now = Date.now()) {
     profiles: createMockProfiles(iso),
     matches: createMockMatches(now),
     messages: createMockMessages(now),
+    likes: [] as Like[],
+    passes: [] as Pass[],
+    dailyPicks: null as DailyPicks | null,
   };
 }
 
