@@ -145,3 +145,7 @@
 @media (max-height: 640px) {
   .pcard__line { display: none; }
 }
+
+/* Card → profile morph: the photo and name travel into the opened profile. */
+.pcard--morph { view-transition-name: td-photo; }
+.pcard--morph .pcard__name { view-transition-name: td-name; }

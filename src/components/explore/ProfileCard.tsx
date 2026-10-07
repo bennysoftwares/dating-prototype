@@ -39,13 +39,15 @@ interface ProfileCardProps {
   onOpen?: () => void;
   /** Previous / next photo for keyboard and screen-reader users (taps on the photo do the same). */
   onPhoto?: (step: -1 | 1) => void;
+  /** Name the photo and name for the card → profile morph. Only one card may at a time. */
+  morphSource?: boolean;
 }
 
 /**
  * The Explore card: the photo is the hero, with just enough to decide whether to look closer.
  * Gestures (swipe, tap to change photo) are handled by the deck around it.
  */
-export function ProfileCard({ candidate, photoIndex = 0, onOpen, onPhoto }: ProfileCardProps) {
+export function ProfileCard({ candidate, photoIndex = 0, onOpen, onPhoto, morphSource }: ProfileCardProps) {
   const p = candidate.profile;
   const age = profileAge(p);
   const photos = p.photos;
@@ -54,7 +56,7 @@ export function ProfileCard({ candidate, photoIndex = 0, onOpen, onPhoto }: Prof
   const verified = p.verification?.photo === 'verified';
 
   return (
-    <div className="pcard">
+    <div className={morphSource ? 'pcard pcard--morph' : 'pcard'}>
       <PhotoFrame photo={photos[index]} ratio="auto" rounded="none" monogram={p.firstName.charAt(0)} className="pcard__photo" decorative />
       <div className="pcard__shade" aria-hidden="true" />
       <div className="pcard__feedback pcard__feedback--pass" aria-hidden="true"><Icon name="close" size={30} /></div>

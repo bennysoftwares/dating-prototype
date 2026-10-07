@@ -1,0 +1,160 @@
+.xp {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-glow), var(--color-bg);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  animation: xp-in 240ms var(--ease-out) both;
+}
+@keyframes xp-in { from { opacity: 0; transform: translateY(24px); } }
+/* With view transitions the photo morphs from the card instead. */
+:root.td-vt .xp { animation: none; }
+
+.xp__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(var(--xp-actions-h) + var(--safe-bottom));
+  --xp-actions-h: 128px;
+}
+.xp__scroll > * { max-width: 560px; margin-left: auto; margin-right: auto; }
+
+.xp__top {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: calc(60px + var(--safe-top));
+  padding: var(--safe-top) var(--space-4) 0;
+  background: var(--color-header-bg);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  backdrop-filter: saturate(160%) blur(16px);
+}
+.xp__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0 0.3em;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 7.5vw, 2.125rem);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  view-transition-name: td-name;
+}
+.xp__age { font-family: var(--font-body); font-size: 0.72em; font-weight: var(--weight-regular); }
+.xp__verified { align-self: center; color: var(--color-accent-bright); }
+.xp__collapse {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  color: var(--color-accent-contrast);
+  box-shadow: var(--shadow-accent);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.xp__collapse:active { transform: scale(0.92); }
+
+.xp__photo {
+  position: relative;
+  margin: var(--space-1) var(--space-2) 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  view-transition-name: td-photo;
+}
+.xp__bars { position: absolute; top: 12px; left: 50%; display: flex; gap: 5px; width: min(56%, 220px); transform: translateX(-50%); pointer-events: none; }
+.xp__bars span { flex: 1; height: 4px; border-radius: var(--radius-pill); background: rgba(255, 248, 242, 0.42); }
+.xp__bars span.is-active { background: #fffaf5; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+.xp__tap { position: absolute; top: 0; bottom: 64px; width: 50%; background: transparent; }
+.xp__tap:disabled { cursor: default; }
+.xp__tap--prev { left: 0; }
+.xp__tap--next { right: 0; }
+.xp__tap:focus-visible { outline: 3px solid var(--color-on-photo); outline-offset: -6px; border-radius: var(--radius-lg); }
+.xp__photo-reply { position: absolute; right: 12px; bottom: 12px; }
+.xp__photo-reply .xp__reply { background: rgba(255, 250, 245, 0.92); color: var(--brand-espresso); box-shadow: var(--shadow-md); }
+
+.xp__sections { display: flex; flex-direction: column; gap: var(--space-3); padding: var(--space-3) var(--space-2) 0; }
+.xp__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.xp__label { display: flex; align-items: center; gap: 6px; font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-text-muted); }
+.xp__label svg { flex: none; color: var(--color-accent-bright); }
+.xp__big { font-family: var(--font-display); font-size: clamp(1.375rem, 6vw, 1.625rem); font-weight: var(--weight-medium); line-height: 1.2; letter-spacing: -0.01em; }
+.xp__text { font-size: var(--text-lg); line-height: var(--leading-snug); }
+.xp__section-action { display: flex; justify-content: flex-end; margin-top: var(--space-1); }
+.xp__reply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-soft-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+.xp__reply:active { transform: scale(0.95); }
+.xp__facts { display: flex; flex-direction: column; list-style: none; margin: 0; padding: 0; }
+.xp__facts li { display: flex; align-items: center; gap: var(--space-3); min-height: 40px; }
+.xp__facts li + li { border-top: 1px solid var(--color-border); }
+.xp__facts svg { flex: none; color: var(--color-accent-bright); }
+.xp__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); list-style: none; margin: 0; padding: 0; }
+.xp__chips li { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; padding: 0 var(--space-3); border-radius: var(--radius-pill); background: var(--color-surface-sunken); font-size: var(--text-sm); font-weight: var(--weight-medium); }
+.xp__chips li.is-shared { background: var(--color-accent-soft); color: var(--color-accent-soft-text); }
+.xp__compat > * { margin: 0; }
+.xp__safety { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-2); }
+.xp__safety button {
+  min-height: 52px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-weight: var(--weight-semibold);
+}
+.xp__safety .xp__danger { color: var(--color-danger); }
+
+/* ✕ and ♥ float over the content, which fades out beneath them. */
+.xp__actions {
+  position: fixed;
+  z-index: 3;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(var(--xp-actions-h, 128px) + var(--safe-bottom));
+  background: linear-gradient(to top, var(--color-bg) 40%, transparent);
+  pointer-events: none;
+  --xp-actions-h: 128px;
+}
+.xp__actions .actions { bottom: calc(var(--space-5) + var(--safe-bottom)); }
+.xp__actions > :not(.actions) { pointer-events: auto; position: absolute; left: 50%; bottom: calc(var(--space-5) + var(--safe-bottom)); transform: translateX(-50%); white-space: nowrap; }
+
+/* Card ↔ profile morph (browsers with view transitions). */
+::view-transition-group(td-photo),
+::view-transition-group(td-name) { animation-duration: 320ms; animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1); }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 220ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .xp { animation: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
