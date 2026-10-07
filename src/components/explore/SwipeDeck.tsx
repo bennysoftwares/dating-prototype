@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type Ref } from 'react';
 import type { SwipeDirection } from '../../discovery/DiscoveryProvider';
 import type { RankedCandidate } from '../../recommendation';
 import { ActionButtons } from './ActionButtons';
@@ -13,10 +13,20 @@ interface SwipeDeckProps {
    * arrow keys). The deck animates the card away on its own, so the next one is usable at once.
    */
   onDecide: (candidate: RankedCandidate, direction: SwipeDirection) => void;
-  onOpen: (candidate: RankedCandidate) => void;
+  /** Opens the profile in place. Gets the photo that was showing, so the profile starts there. */
+  onOpen: (candidate: RankedCandidate, photoIndex: number) => void;
+  /** The top card is the source of the card → profile morph (off while the profile is open). */
+  morphSource?: boolean;
+  ref?: Ref<SwipeDeckHandle>;
   /** A person just brought back by rewind: they slide back in from the side they left. */
   returning?: { profileId: string; from: SwipeDirection } | null;
   label: string;
+}
+
+export interface SwipeDeckHandle {
+  /** Decide on the top card exactly as a swipe would, card animation included. */
+  swipe: (direction: SwipeDirection) => void;
+  topId: () => string | undefined;
 }
 
 interface Flying {
@@ -53,7 +63,7 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia?.
  * Explore's swipe deck. Drag right to like, left to pass; the X and heart buttons and the
  * arrow keys go through exactly the same `commit` path, so every input records the same decision.
  */
-export function SwipeDeck({ items, onDecide, onOpen, returning, label }: SwipeDeckProps) {
+export function SwipeDeck({ items, onDecide, onOpen, returning, label, morphSource = true, ref }: SwipeDeckProps) {
   const [top, next] = items;
   const cardRef = useRef<HTMLDivElement>(null);
   const deckRef = useRef<HTMLDivElement>(null);
@@ -101,6 +111,8 @@ export function SwipeDeck({ items, onDecide, onOpen, returning, label }: SwipeDe
     [top, photoIndex, onDecide],
   );
 
+  useImperativeHandle(ref, () => ({ swipe: commit, topId: () => top?.profile.id }), [commit, top]);
+
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if (!top || e.button !== 0) return;
     // Buttons inside the card (open profile, X, heart) keep their own clicks.
@@ -134,7 +146,7 @@ export function SwipeDeck({ items, onDecide, onOpen, returning, label }: SwipeDe
       if (!el || !top) return;
       const rect = el.getBoundingClientRect();
       const info = el.querySelector('.pcard__info')?.getBoundingClientRect();
-      if (info && e.clientY >= info.top) return onOpen(top);
+      if (info && e.clientY >= info.top) return onOpen(top, photoIndex);
       changePhoto(e.clientX - rect.left < rect.width / 2 ? -1 : 1);
       return;
     }
@@ -158,7 +170,7 @@ export function SwipeDeck({ items, onDecide, onOpen, returning, label }: SwipeDe
     if (e.target !== e.currentTarget) return;
     if (e.key === 'ArrowLeft') commit('left');
     else if (e.key === 'ArrowRight') commit('right');
-    else if (e.key === 'Enter' && top) onOpen(top);
+    else if (e.key === 'Enter' && top) onOpen(top, photoIndex);
     else return;
     e.preventDefault();
   };
@@ -198,11 +210,13 @@ export function SwipeDeck({ items, onDecide, onOpen, returning, label }: SwipeDe
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
             onPointerCancel={onPointerCancel}
-            onLostPointerCapture={() => drag.current?.dragging && onPointerCancel()}
+            // Only the card losing capture cancels a drag. On touch, the inner element first
+            // touched holds implicit capture and "loses" it (bubbling up here) when the card takes over.
+            onLostPointerCapture={(e) => e.target === e.currentTarget && drag.current?.dragging && onPointerCancel()}
             aria-label={`${top.profile.firstName}`}
             data-profile-id={top.profile.id}
           >
-            <ProfileCard candidate={top} photoIndex={photoIndex} onOpen={() => onOpen(top)} onPhoto={changePhoto} />
+            <ProfileCard candidate={top} photoIndex={photoIndex} onOpen={() => onOpen(top, photoIndex)} onPhoto={changePhoto} morphSource={morphSource} />
             <ActionButtons name={top.profile.firstName} onPass={() => commit('left')} onLike={() => commit('right')} />
           </div>
         )}

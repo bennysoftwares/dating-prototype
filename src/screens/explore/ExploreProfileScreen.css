@@ -19,7 +19,6 @@
   -webkit-backdrop-filter: saturate(160%) blur(16px);
   backdrop-filter: saturate(160%) blur(16px);
 }
-.dprofile__brand { display: flex; justify-content: center; min-width: 0; }
 .dprofile__body {
   display: flex;
   justify-content: center;
@@ -41,21 +40,6 @@
   pointer-events: none;
 }
 .dprofile__actions > * { pointer-events: auto; }
-.dprofile__choices { display: flex; align-items: center; justify-content: center; gap: clamp(20px, 7vw, 36px); }
-.dprofile__choice {
-  display: grid;
-  place-items: center;
-  width: 62px;
-  height: 62px;
-  border-radius: 50%;
-  box-shadow: var(--shadow-lg);
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-.dprofile__choice:active:not(:disabled) { transform: scale(0.92); }
-.dprofile__choice:disabled { opacity: 0.6; }
-.dprofile__choice--pass { background: var(--color-surface-raised); color: var(--color-text); }
-.dprofile__choice--message { background: var(--color-accent-soft); color: var(--color-accent-soft-text); width: 56px; height: 56px; }
-.dprofile__choice--like { width: 68px; height: 68px; background: var(--gradient-accent); color: var(--color-accent-contrast); box-shadow: var(--shadow-accent); }
 .dprofile__decided { padding: var(--space-3) var(--space-4); border-radius: var(--radius-pill); background: var(--color-surface-raised); box-shadow: var(--shadow-md); display: flex; align-items: center; gap: var(--space-3); width: 100%; max-width: 460px; color: var(--color-text-muted); font-weight: var(--weight-medium); }
 .dprofile__decided span { flex: 1; }
 .dprofile__decided svg { color: var(--color-accent); }

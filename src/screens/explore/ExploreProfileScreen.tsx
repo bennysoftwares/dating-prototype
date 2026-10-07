@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ROUTES } from '../../app/navigation';
-import { Logo } from '../../components/brand/Logo';
 import { LikeSheet } from '../../components/discovery/LikeSheet';
-import { SafetySheet } from '../../components/safety/SafetySheet';
-import { ProfileView } from '../../components/profile/ProfileView';
-import { Button, EmptyState, ErrorState, Icon, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import { ExpandedProfile } from '../../components/explore/ExpandedProfile';
+import { SafetySheet, type SafetyStep } from '../../components/safety/SafetySheet';
+import { Button, EmptyState, ErrorState, Icon, LoadingRegion, Skeleton, useToast } from '../../components/ui';
 import { useDiscovery } from '../../discovery/DiscoveryProvider';
 import type { LikeTarget } from '../../domain/types';
-import { distanceLabel } from '../../utils/profileFormat';
 import { useSticky } from '../../hooks/useSticky';
 import { useBack } from '../onboarding/useStepNavigation';
 import './ExploreProfileScreen.css';
@@ -28,8 +26,8 @@ export function ExploreProfileScreen() {
   const [likeTarget, setLikeTarget] = useState<LikeTarget | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const [safetyOpen, setSafetyOpen] = useState(false);
-  const candidate = useSticky(getCandidate(profileId), safetyOpen || busy);
+  const [safetyStep, setSafetyStep] = useState<SafetyStep | null>(null);
+  const candidate = useSticky(getCandidate(profileId), Boolean(safetyStep) || busy);
   const decision = decisionFor(profileId);
 
   useEffect(() => {
@@ -37,7 +35,7 @@ export function ExploreProfileScreen() {
     setLikeTarget(null);
   }, [profileId]);
   useEffect(() => {
-    document.documentElement.style.setProperty('--toast-bottom', 'calc(var(--action-bar-height) + var(--safe-bottom) + var(--space-3))');
+    document.documentElement.style.setProperty('--toast-bottom', 'calc(128px + var(--safe-bottom))');
     return () => {
       document.documentElement.style.removeProperty('--toast-bottom');
     };
@@ -102,61 +100,39 @@ export function ExploreProfileScreen() {
 
   return (
     <div className="dprofile">
-      <header className="dprofile__top">
-        <IconButton icon="chevronLeft" label="Back" onClick={done} />
-        <div className="dprofile__brand" aria-hidden="true">
-          <Logo size={26} />
-        </div>
-        <IconButton icon="more" label={`More options for ${name}`} onClick={() => setSafetyOpen(true)} />
-      </header>
-
-      <main className="dprofile__body">
-        <h1 className="visually-hidden">{name}'s profile</h1>
-        <ProfileView
-          profile={candidate.profile}
-          distanceLabel={distanceLabel(candidate.profile, candidate.distanceKm)}
-          compatibility={candidate.compatibility}
-          onLike={decision ? undefined : setLikeTarget}
-          likedTarget={decision?.kind === 'like' ? decision.like.target : undefined}
-        />
-      </main>
-
-      <footer className="dprofile__actions">
-        {decision ? (
-          <div className="dprofile__decided">
-            <Icon name={decision.kind === 'like' ? 'heart' : 'close'} size={20} filled={decision.kind === 'like'} />
-            <span>{decision.kind === 'like' ? `You liked ${name}` : `You passed on ${name}`}</span>
-            <Button variant="secondary" size="sm" onClick={done}>Back</Button>
-          </div>
-        ) : (
-          <div className="dprofile__choices">
-            <button type="button" className="dprofile__choice dprofile__choice--pass" onClick={() => void onPass()} disabled={busy}>
-              <Icon name="close" size={26} strokeWidth={2.4} />
-              <span className="visually-hidden">Pass on {name}</span>
-            </button>
-            <button type="button" className="dprofile__choice dprofile__choice--message" onClick={() => setLikeTarget({ kind: 'profile' })} disabled={busy}>
-              <Icon name="chat" size={26} />
-              <span className="visually-hidden">Like {name} with a message</span>
-            </button>
-            <button type="button" className="dprofile__choice dprofile__choice--like" onClick={() => void sendLike({ kind: 'profile' })} disabled={busy}>
-              <Icon name="heart" size={28} filled />
-              <span className="visually-hidden">Like {name}</span>
-            </button>
-          </div>
-        )}
-      </footer>
+      <ExpandedProfile
+        candidate={candidate}
+        onCollapse={done}
+        collapseLabel="Back"
+        onPass={decision || busy ? undefined : () => void onPass()}
+        onLike={decision || busy ? undefined : () => void sendLike({ kind: 'profile' })}
+        onReply={decision ? undefined : setLikeTarget}
+        onSafety={(step) => setSafetyStep(step)}
+        decided={
+          decision ? (
+            <div className="dprofile__decided">
+              <Icon name={decision.kind === 'like' ? 'heart' : 'close'} size={20} filled={decision.kind === 'like'} />
+              <span>{decision.kind === 'like' ? `You liked ${name}` : `You passed on ${name}`}</span>
+              <Button variant="secondary" size="sm" onClick={done}>Back</Button>
+            </div>
+          ) : undefined
+        }
+      />
 
       <LikeSheet profile={candidate.profile} target={likeTarget} onClose={() => setLikeTarget(null)} onSend={sendLike} />
-      <SafetySheet
-        person={candidate.profile}
-        open={safetyOpen}
-        onClose={() => setSafetyOpen(false)}
-        onDone={() => {
-          // After a report or block, leave rather than keep showing this person.
-          done();
-          void discovery.refresh();
-        }}
-      />
+      {safetyStep && (
+        <SafetySheet
+          person={candidate.profile}
+          open
+          initialStep={safetyStep}
+          onClose={() => setSafetyStep(null)}
+          onDone={() => {
+            // After a report or block, leave rather than keep showing this person.
+            done();
+            void discovery.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

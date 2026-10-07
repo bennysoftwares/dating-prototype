@@ -6,7 +6,7 @@ import { ChoiceList, Switch, TextArea } from '../form';
 import { ActionList, BottomSheet, Button, Icon, type Action } from '../ui';
 import './SafetySheet.css';
 
-type Step = 'menu' | 'report-category' | 'report-details' | 'report-done' | 'block' | 'unmatch' | 'done';
+export type SafetyStep = 'menu' | 'report-category' | 'report-details' | 'report-done' | 'block' | 'unmatch' | 'done';
 export type SafetyOutcome = 'blocked' | 'reported' | 'unmatched';
 
 interface SafetySheetProps {
@@ -20,7 +20,7 @@ interface SafetySheetProps {
   /** Called after a safety action completes, e.g. to leave a screen that no longer applies. */
   onDone?: (outcome: SafetyOutcome) => void;
   /** Jump straight to a step (e.g. Report from a dedicated button). */
-  initialStep?: Step;
+  initialStep?: SafetyStep;
 }
 
 /**
@@ -29,7 +29,7 @@ interface SafetySheetProps {
  */
 export function SafetySheet({ person, open, onClose, matchId, extraActions = [], onDone, initialStep = 'menu' }: SafetySheetProps) {
   const { block, report, unmatch } = useConnections();
-  const [step, setStep] = useState<Step>(initialStep);
+  const [step, setStep] = useState<SafetyStep>(initialStep);
   const [category, setCategory] = useState<ReportCategory | null>(null);
   const [details, setDetails] = useState('');
   const [alsoBlock, setAlsoBlock] = useState(true);
@@ -50,7 +50,7 @@ export function SafetySheet({ person, open, onClose, matchId, extraActions = [],
     }
   }, [open, initialStep]);
 
-  const run = async (fn: () => Promise<void>, next: Step, result: SafetyOutcome) => {
+  const run = async (fn: () => Promise<void>, next: SafetyStep, result: SafetyOutcome) => {
     setBusy(true);
     setError(null);
     try {
@@ -76,7 +76,7 @@ export function SafetySheet({ person, open, onClose, matchId, extraActions = [],
     ...(matchId ? [{ label: 'Unmatch', icon: 'close' as const, danger: true, onSelect: () => setStep('unmatch') }] : []),
   ];
 
-  const titles: Record<Step, string> = {
+  const titles: Record<SafetyStep, string> = {
     menu: name,
     'report-category': `Report ${name}`,
     'report-details': `Report ${name}`,

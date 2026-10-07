@@ -1,15 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
 import { ROUTES } from '../../app/navigation';
 import { Logo, LogoMark } from '../../components/brand/Logo';
-import { SwipeDeck } from '../../components/explore/SwipeDeck';
+import { LikeSheet } from '../../components/discovery/LikeSheet';
+import { ExpandedProfile } from '../../components/explore/ExpandedProfile';
+import { SwipeDeck, type SwipeDeckHandle } from '../../components/explore/SwipeDeck';
+import { SafetySheet, type SafetyStep } from '../../components/safety/SafetySheet';
 import { Button, EmptyState, Icon, IconButton, useToast, type IconName } from '../../components/ui';
 import { useDiscovery, type SwipeDirection } from '../../discovery/DiscoveryProvider';
 import { PROFILE_LIMITS as L } from '../../domain/profileOptions';
+import type { LikeTarget } from '../../domain/types';
 import type { RankedCandidate } from '../../recommendation';
 import { useRepositories } from '../../repositories/RepositoryContext';
 import type { FeedSort } from '../../repositories/types';
 import { useAccount } from '../../session/useAccount';
+import { useSticky } from '../../hooks/useSticky';
 import { profileAge } from '../../utils/profileFormat';
 import './ExploreScreen.css';
 
@@ -56,7 +61,95 @@ export function ExploreScreen() {
     [discovery, navigate, toast],
   );
 
-  const onOpen = useCallback((c: RankedCandidate) => navigate(ROUTES.exploreProfile(c.profile.id)), [navigate]);
+  /* ----------------- The card opens in place into the full profile ----------------- */
+
+  const deckRef = useRef<SwipeDeckHandle>(null);
+  const [params, setParams] = useSearchParams();
+  const expandedId = params.get('profile');
+  const [photoStart, setPhotoStart] = useState(0);
+  /** Opening pushes a history entry, so the back gesture folds the profile up again. */
+  const openedHere = useRef(false);
+  const [replyTarget, setReplyTarget] = useState<LikeTarget | null>(null);
+  const [safetyStep, setSafetyStep] = useState<SafetyStep | null>(null);
+  const live = expandedId ? (feed.items.find((c) => c.profile.id === expandedId) ?? discovery.getCandidate(expandedId)) : undefined;
+  // Keep showing them while a sheet is open (a block removes them from discovery mid-flow).
+  const expanded = useSticky(live, Boolean(safetyStep || replyTarget));
+  /** ✕ / ♥ pressed in the open profile: fold it up, then fly the card away like a swipe. */
+  const pendingSwipe = useRef<SwipeDirection | null>(null);
+
+  // Card ↔ profile morph. The new view is captured once React has rendered the change.
+  const settle = useRef<(() => void) | null>(null);
+  const morph = useCallback((change: () => void) => {
+    const doc = document as Document & { startViewTransition?: (cb: () => Promise<void>) => { finished: Promise<void> } };
+    if (!doc.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return change();
+    const root = document.documentElement;
+    root.classList.add('td-vt');
+    const t = doc.startViewTransition(() => new Promise<void>((resolve) => {
+      settle.current = resolve;
+      change();
+      window.setTimeout(resolve, 600);
+    }));
+    void t.finished.catch(() => undefined).finally(() => root.classList.remove('td-vt'));
+  }, []);
+  useLayoutEffect(() => {
+    settle.current?.();
+    settle.current = null;
+  }, [expandedId]);
+
+  const onOpen = useCallback(
+    (c: RankedCandidate, photoIndex: number) => {
+      setPhotoStart(photoIndex);
+      openedHere.current = true;
+      morph(() => setParams({ profile: c.profile.id }));
+    },
+    [morph, setParams],
+  );
+
+  const collapse = useCallback(
+    (animate = true) => {
+      const go = () => {
+        if (openedHere.current) navigate(-1);
+        else setParams({}, { replace: true });
+        openedHere.current = false;
+      };
+      if (animate) morph(go);
+      else go();
+    },
+    [morph, navigate, setParams],
+  );
+
+  // A profile link that's no longer valid (decided, blocked) just shows the deck.
+  useEffect(() => {
+    if (expandedId && !expanded && feed.status === 'ready') setParams({}, { replace: true });
+  }, [expandedId, expanded, feed.status, setParams]);
+
+  // After folding up for ✕ / ♥, decide through the deck so the card animates away.
+  useEffect(() => {
+    const dir = pendingSwipe.current;
+    if (expandedId || !dir) return;
+    pendingSwipe.current = null;
+    requestAnimationFrame(() => deckRef.current?.swipe(dir));
+  }, [expandedId]);
+
+  const decideOpen = (direction: SwipeDirection) => {
+    if (!expanded) return;
+    if (deckRef.current?.topId() === expanded.profile.id) {
+      pendingSwipe.current = direction;
+      collapse(false);
+    } else {
+      collapse(false);
+      onDecide(expanded, direction);
+    }
+  };
+
+  const sendReply = async (target: LikeTarget, comment: string) => {
+    if (!expanded) return;
+    const match = await discovery.like(expanded, target, comment);
+    setReplyTarget(null);
+    collapse(false);
+    if (match) navigate(`${ROUTES.matchCelebration(match.id)}?from=explore`);
+    else toast({ message: comment.trim() ? `Like and message sent to ${expanded.profile.firstName}` : `You liked ${expanded.profile.firstName}` });
+  };
 
   const onRewind = async () => {
     const action = view?.rewindable?.action;
@@ -166,7 +259,15 @@ export function ExploreScreen() {
                 Couldn't load more people. <span>Retry</span>
               </button>
             )}
-            <SwipeDeck items={feed.items} onDecide={onDecide} onOpen={onOpen} returning={returning} label={`Profiles. Showing ${top.profile.firstName}.`} />
+            <SwipeDeck
+              ref={deckRef}
+              items={feed.items}
+              onDecide={onDecide}
+              onOpen={onOpen}
+              returning={returning}
+              morphSource={!expanded}
+              label={`Profiles. Showing ${top.profile.firstName}.`}
+            />
           </>
         ) : feed.status === 'error' ? (
           <div className="explore__state" role="alert">
@@ -220,6 +321,33 @@ export function ExploreScreen() {
           </div>
         )}
       </section>
+
+      {expanded && (
+        <ExpandedProfile
+          candidate={expanded}
+          initialPhoto={photoStart}
+          onCollapse={() => collapse()}
+          collapseLabel={`Back to ${expanded.profile.firstName}'s card`}
+          onPass={() => decideOpen('left')}
+          onLike={() => decideOpen('right')}
+          onReply={setReplyTarget}
+          onSafety={setSafetyStep}
+        />
+      )}
+      {expanded && <LikeSheet profile={expanded.profile} target={replyTarget} onClose={() => setReplyTarget(null)} onSend={sendReply} />}
+      {expanded && safetyStep && (
+        <SafetySheet
+          person={expanded.profile}
+          open
+          initialStep={safetyStep}
+          onClose={() => setSafetyStep(null)}
+          onDone={() => {
+            setSafetyStep(null);
+            collapse(false);
+            void discovery.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }
