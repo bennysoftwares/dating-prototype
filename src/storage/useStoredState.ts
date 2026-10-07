@@ -4,12 +4,13 @@ import { storage, type ReadOptions } from './storage';
 /**
  * React state persisted to localStorage. Survives reloads and stays in sync
  * across every component (and browser tab) using the same key.
+ * The setter returns false if the value could not be saved (e.g. storage full).
  */
 export function useStoredState<T>(
   key: string,
   fallback: T,
   options: ReadOptions<T> = {},
-): [T, (next: T | ((prev: T) => T)) => void] {
+): [T, (next: T | ((prev: T) => T)) => boolean] {
   const { version = 1 } = options;
   // Keep the latest options/fallback without re-subscribing every render.
   const ref = useRef({ fallback, options });
@@ -37,7 +38,7 @@ export function useStoredState<T>(
     (next: T | ((prev: T) => T)) => {
       const prev = getSnapshot();
       const resolved = typeof next === 'function' ? (next as (p: T) => T)(prev) : next;
-      storage.set(key, resolved, version);
+      return storage.set(key, resolved, version);
     },
     [key, version, getSnapshot],
   );

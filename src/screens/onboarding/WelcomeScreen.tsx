@@ -1,0 +1,64 @@
+import { useNavigate } from 'react-router';
+import { ONBOARDING_ROUTES, ROUTES } from '../../app/navigation';
+import { LogoMark } from '../../components/brand/Logo';
+import { Button } from '../../components/ui';
+import { brand } from '../../config/brand';
+import { useOnboardingDraft } from '../../onboarding/useOnboardingDraft';
+import { localDb } from '../../repositories/local/localDb';
+import { useSession } from '../../session/SessionProvider';
+import { getStep, STEPS } from './stepRegistry';
+import './WelcomeScreen.css';
+
+export function WelcomeScreen() {
+  const navigate = useNavigate();
+  const { refresh } = useSession();
+  const { hasDraft, lastStepId } = useOnboardingDraft();
+  const resumeStep = getStep(lastStepId);
+
+  const start = () => navigate(ONBOARDING_ROUTES.step(STEPS[0]!.id));
+  const resume = () => navigate(ONBOARDING_ROUTES.step(resumeStep?.id ?? STEPS[0]!.id));
+
+  // Prototype convenience: skip onboarding with the preconfigured demo profile.
+  const useDemo = async () => {
+    localDb.loadDemoUser();
+    await refresh();
+    navigate(ROUTES.discover, { replace: true });
+  };
+
+  return (
+    <div className="welcome">
+      <div className="welcome__art" aria-hidden="true">
+        <div className="welcome__card welcome__card--back" />
+        <div className="welcome__card welcome__card--mid" />
+        <div className="welcome__card welcome__card--front">
+          <span className="welcome__card-prompt">My ideal first date…</span>
+          <span className="welcome__card-answer">Coffee that turns into dinner.</span>
+        </div>
+      </div>
+
+      <div className="welcome__content">
+        <div className="welcome__brand">
+          <LogoMark size={36} />
+          <span>{brand.name}</span>
+        </div>
+        <h1 className="welcome__title">Fewer people. Better conversations.</h1>
+        <p className="welcome__body">
+          A small, considered set of people each day, with enough on their profile to actually start talking.
+        </p>
+      </div>
+
+      <div className="welcome__actions">
+        {hasDraft ? (
+          <>
+            <Button size="lg" block onClick={resume}>Continue your profile</Button>
+            <Button size="lg" variant="secondary" block onClick={start}>Start from the beginning</Button>
+          </>
+        ) : (
+          <Button size="lg" block onClick={start}>Create your profile</Button>
+        )}
+        <Button variant="quiet" block onClick={() => void useDemo()}>Explore with the demo profile</Button>
+        <p className="welcome__note">Prototype. Everything you enter stays on this device.</p>
+      </div>
+    </div>
+  );
+}

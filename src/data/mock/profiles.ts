@@ -7,12 +7,13 @@ function photos(profileId: string, name: string, tones: Array<readonly [string, 
   return tones.map((tone, i) => ({ id: `${profileId}-p${i + 1}`, tone, alt: `Photo ${i + 1} of ${name}` }));
 }
 
-export const CURRENT_USER_ID = 'u-alex';
+export const CURRENT_USER_ID = 'u-me';
+export const CURRENT_PROFILE_ID = 'p-me';
 
-/** Demo user for development. Onboarding (Part 2) will make this editable. */
-export function createCurrentUserProfile(now: string): Profile {
+/** Preconfigured demo user (Alex) for development. Fully editable once loaded. */
+export function createDemoProfile(now: string): Profile {
   return {
-    id: 'p-alex',
+    id: CURRENT_PROFILE_ID,
     userId: CURRENT_USER_ID,
     firstName: 'Alex',
     birthDate: '1999-03-14',
@@ -28,13 +29,16 @@ export function createCurrentUserProfile(now: string): Profile {
     wantsChildren: 'wants',
     languages: ['English', 'Swedish'],
     interests: ['gaming', 'movies', 'gym', 'history', 'technology', 'horror'],
-    photos: photos('p-alex', 'Alex', [TONES.sea, TONES.stone, TONES.sand]),
+    religion: 'Agnostic',
+    politics: 'Moderate',
+    photos: photos('p-me-demo', 'Alex', [TONES.sea, TONES.stone, TONES.sand, TONES.sage]),
     prompts: [
-      { id: 'p-alex-q1', prompt: 'A perfect Sunday looks like...', answer: 'Long gym session, a slow brunch, then a horror double feature with someone who pretends not to be scared.' },
-      { id: 'p-alex-q2', prompt: "I'm weirdly passionate about...", answer: 'Medieval siege engineering. Ask me about trebuchets at your own risk.' },
+      { id: 'p-me-q1', prompt: 'A perfect Sunday looks like...', answer: 'Long gym session, a slow brunch, then a horror double feature with someone who pretends not to be scared.' },
+      { id: 'p-me-q2', prompt: "I'm weirdly passionate about...", answer: 'Medieval siege engineering. Ask me about trebuchets at your own risk.' },
+      { id: 'p-me-q3', prompt: 'My ideal first date...', answer: 'Coffee somewhere quiet, then a walk that accidentally turns into dinner.' },
     ],
     bio: 'Builds software by day, loses at strategy games by night.',
-    visibility: { job: true, education: true, height: true, drinking: true, smoking: true, children: true },
+    visibility: { job: true, education: true, height: true, drinking: true, smoking: true, children: true, religion: false, politics: false },
     updatedAt: now,
   };
 }
