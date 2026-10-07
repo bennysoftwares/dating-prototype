@@ -10,7 +10,6 @@ import {
   WANTS_CHILDREN_DISPLAY,
 } from '../../domain/profileOptions';
 import { draftAge } from '../../onboarding/draft';
-import type { StepId } from '../../onboarding/validation';
 import { BeliefsStep, FamilyStep, HeightStep, LanguagesStep, LifestyleStep, WorkStep } from './steps/AboutSteps';
 import { BirthdayStep, GenderStep, LocationStep, NameStep } from './steps/BasicsSteps';
 import { AgeRangeStep, DistanceStep, IntentStep, MeetStep } from './steps/DatingSteps';
@@ -109,12 +108,6 @@ export const STEPS: readonly StepDef[] = [
   },
 ];
 
-export const STEP_IDS = STEPS.map((s) => s.id);
-
 export function getStep(id: string | undefined): StepDef | undefined {
   return STEPS.find((s) => s.id === id);
-}
-
-export function stepIndex(id: StepId): number {
-  return STEPS.findIndex((s) => s.id === id);
 }

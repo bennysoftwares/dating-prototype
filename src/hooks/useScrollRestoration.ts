@@ -27,8 +27,3 @@ export function useScrollRestoration(key: string, ready: boolean) {
     };
   }, [key]);
 }
-
-/** Forget a saved position (e.g. when the list it belonged to has changed completely). */
-export function clearScrollPosition(key: string) {
-  positions.delete(key);
-}

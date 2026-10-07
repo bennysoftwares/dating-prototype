@@ -1,5 +1,8 @@
 name: Deploy to GitHub Pages
 
+# Builds the static prototype and publishes it to GitHub Pages.
+# One-time setup: repository Settings → Pages → Build and deployment → Source: "GitHub Actions".
+
 on:
   push:
     branches: [main]
@@ -24,7 +27,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Typecheck + production build. Assets are served from /<repository-name>/.
       - run: npm run build
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

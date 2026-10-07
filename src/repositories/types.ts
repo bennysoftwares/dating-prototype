@@ -95,8 +95,10 @@ export interface DiscoveryRepository {
   /** If they already liked you, this creates a mutual match and returns it. */
   sendLike(input: { toProfileId: ID; toUserId: ID; target: LikeTarget; comment?: string }): Promise<{ like: Like; match: Match | null }>;
   pass(toProfileId: ID): Promise<Pass>;
-  /** Remove a pass so the person can be seen again (one-step undo). */
+  /** Rewind: remove a pass so the person can be seen again. */
   undoPass(passId: ID): Promise<void>;
+  /** Rewind: withdraw a like that hasn't become a match. */
+  undoLike(likeId: ID): Promise<void>;
   saveDailyPicks(daily: DailyPicks): Promise<DailyPicks>;
 }
 

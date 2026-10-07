@@ -27,11 +27,12 @@ export function ConversationRow({ convo, viewerId, draft }: ConversationRowProps
     .join(', ');
 
   return (
-    <Link to={ROUTES.chat(match.id)} className={cx('convo-row', unread > 0 && 'convo-row--unread')} aria-label={label}>
+    <Link to={ROUTES.chat(match.id)} className={cx('convo-row', unread > 0 && 'convo-row--unread')}>
+      <span className="visually-hidden">{label}. </span>
       <Avatar photo={other.photos[0]} name={other.firstName} size={56} />
       <span className="convo-row__text">
         <span className="convo-row__top">
-          <span className="convo-row__name">{other.firstName}</span>
+          <span className="convo-row__name" aria-hidden="true">{other.firstName}</span>
           <time className="convo-row__time" dateTime={match.lastActivityAt}>{formatRelativeShort(match.lastActivityAt)}</time>
         </span>
         <span className="convo-row__bottom">

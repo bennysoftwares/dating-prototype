@@ -27,7 +27,12 @@ export interface User {
   profileId: ID;
   /** Incognito: only people you like can see your profile. */
   incognito?: boolean;
+  /** Exactly two plans. Missing means Free. No payments exist in the prototype. */
+  plan?: Plan;
 }
+
+/** One Free plan and one Premium plan. No other tiers, no consumables. */
+export type Plan = 'free' | 'premium';
 
 /** Account-level privacy choices that aren't part of the public profile. */
 export interface PrivacySettings {
@@ -263,8 +268,20 @@ export interface DailyPicks {
   fingerprint: string;
   /** Explore more opened for this day. */
   exploreOpened: boolean;
-  /** The single pass that can still be undone (one step only). Cleared by any other action. */
+  /**
+   * The rewind buffer: exactly one previous discovery action, replaced by every new
+   * pass or like and cleared after a rewind. Recorded for everyone; only Premium can use it.
+   */
+  lastAction?: DiscoveryAction | null;
+  /** @deprecated Part 3 storage; read as a pass `lastAction`. */
   undoablePassId?: ID | null;
+}
+
+export interface DiscoveryAction {
+  kind: 'pass' | 'like';
+  /** The Pass or Like record id. */
+  recordId: ID;
+  profileId: ID;
 }
 
 /* ------------------------------------------------------------------ */

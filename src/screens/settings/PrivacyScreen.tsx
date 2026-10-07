@@ -133,7 +133,7 @@ export function PrivacyScreen() {
               />
             </div>
             <p className="settings__note">
-              <span className="settings__badge">Prototype</span> Contacts are never uploaded in this prototype. A real version would match hashed phone numbers on your device.
+              <span className="settings__badge">Demo</span> Contacts are never uploaded. A real version would compare hashed phone numbers on your device.
             </p>
           </Section>
 

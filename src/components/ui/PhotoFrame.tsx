@@ -12,22 +12,24 @@ interface PhotoFrameProps {
   monogram?: string;
   className?: string;
   children?: ReactNode;
+  /** Hide from assistive tech when a nearby label already names the person. */
+  decorative?: boolean;
 }
 
 /**
  * Displays a profile photo. Real images lazy-load over their tone gradient;
  * placeholder photos render warm generated art so mock data looks considered.
  */
-export function PhotoFrame({ photo, ratio = '4 / 5', rounded = 'lg', monogram, className, children }: PhotoFrameProps) {
+export function PhotoFrame({ photo, ratio = '4 / 5', rounded = 'lg', monogram, className, children, decorative }: PhotoFrameProps) {
   const [from, to] = photo?.tone ?? ['#d8cfc5', '#8b8178'];
   const style = { '--photo-from': from, '--photo-to': to, aspectRatio: ratio } as CSSProperties;
 
   return (
     <div className={cx('photo', `photo--r-${rounded}`, className)} style={style}>
       {photo?.url ? (
-        <img src={photo.url} alt={photo.alt} loading="lazy" decoding="async" />
+        <img src={photo.url} alt={decorative ? '' : photo.alt} loading="lazy" decoding="async" />
       ) : (
-        <div className="photo__art" role="img" aria-label={photo?.alt ?? 'Photo placeholder'}>
+        <div className="photo__art" {...(decorative ? { 'aria-hidden': true } : { role: 'img', 'aria-label': photo?.alt ?? 'Photo placeholder' })}>
           {monogram && <span aria-hidden="true">{monogram}</span>}
         </div>
       )}

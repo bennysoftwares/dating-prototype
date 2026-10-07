@@ -127,14 +127,16 @@ export function ChatScreen() {
     <div className="chat">
       <header className="chat__top">
         <IconButton icon="chevronLeft" label="Back to matches" onClick={() => back(ROUTES.matches)} />
-        <button type="button" className="chat__who" onClick={() => navigate(ROUTES.chatProfile(match.id))} aria-label={`View ${other.firstName}'s profile`}>
-          <Avatar photo={other.photos[0]} name={other.firstName} size={36} />
+        <button type="button" className="chat__who" onClick={() => navigate(ROUTES.chatProfile(match.id))}>
+          <Avatar photo={other.photos[0]} name={other.firstName} size={36} decorative />
           <span>{other.firstName}</span>
+          <span className="visually-hidden">, view profile</span>
         </button>
         <IconButton icon="more" label="Conversation options" onClick={() => setMenuOpen(true)} />
       </header>
 
-      <main className="chat__body" aria-label={`Conversation with ${other.firstName}`}>
+      <main className="chat__body" aria-labelledby="chat-title">
+        <h1 id="chat-title" className="visually-hidden">Conversation with {other.firstName}</h1>
         <section className="chat__intro" aria-label="How you matched">
           <Avatar photo={other.photos[0]} name={other.firstName} size={72} />
           <p className="chat__intro-title">You matched with {other.firstName}</p>

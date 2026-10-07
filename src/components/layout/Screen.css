@@ -64,3 +64,9 @@
 @media (min-width: 900px) {
   .screen__header-inner { padding-top: var(--space-8); }
 }
+
+/* Wide screens: list-style screens (Discover) use a wider column instead of stretching one card. */
+@media (min-width: 720px) {
+  .screen--wide .screen__header-inner,
+  .screen--wide .screen__body { max-width: 1000px; }
+}

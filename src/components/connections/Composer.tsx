@@ -29,7 +29,7 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
   const [attachOpen, setAttachOpen] = useState(false);
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
-  const wrapRef = useRef<HTMLDivElement>(null);
+  const wrapRef = useRef<HTMLElement>(null);
 
   // Auto-grow the textarea up to a few lines.
   useEffect(() => {
@@ -88,7 +88,7 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
   };
 
   return (
-    <div ref={wrapRef} className="composer">
+    <footer ref={wrapRef} className="composer" aria-label="Write a message">
       {emojiOpen && (
         <div className="composer__emoji" role="group" aria-label="Emoji">
           {EMOJI.map((e) => (
@@ -128,7 +128,7 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
         </button>
       </div>
 
-      <BottomSheet open={attachOpen} onClose={() => setAttachOpen(false)} title="Add to message" description="Prototype: photos and voice notes are placeholders, nothing is uploaded.">
+      <BottomSheet open={attachOpen} onClose={() => setAttachOpen(false)} title="Add to message" description="In this demo, photos and voice notes are placeholders. Nothing is uploaded.">
         <ActionList
           actions={[
             { label: 'Photo', icon: 'image', onSelect: () => { setAttachOpen(false); onSendPhoto(); } },
@@ -142,7 +142,7 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
         open={recording}
         onClose={() => setRecording(false)}
         title="Voice note"
-        description="Prototype: no audio is recorded yet."
+        description="This demo doesn’t record audio."
         footer={
           <>
             <Button size="lg" icon="send" block onClick={() => { setRecording(false); onSendVoice(Math.max(1, seconds)); }}>
@@ -158,6 +158,6 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
           <span className="composer__rec-time">{formatDuration(seconds)}</span>
         </div>
       </BottomSheet>
-    </div>
+    </footer>
   );
 }

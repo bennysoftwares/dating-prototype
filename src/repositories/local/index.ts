@@ -128,6 +128,16 @@ export function createLocalRepositories(): Repositories {
           ensure(localDb.writePasses([...localDb.passes().filter((p) => !(p.fromUserId === pass.fromUserId && p.toProfileId === toProfileId)), pass]));
           return pass;
         }),
+      undoLike: (likeId) =>
+        withLatency(() => {
+          const me = currentUser().id;
+          const like = localDb.likes().find((l) => l.id === likeId && l.fromUserId === me);
+          if (!like) return;
+          if (localDb.matches().some((m) => m.userIds.includes(like.toUserId) && m.userIds.includes(me))) {
+            throw new Error('You’re already matched, so this like can’t be rewound.');
+          }
+          ensure(localDb.writeLikes(localDb.likes().filter((l) => l.id !== likeId)));
+        }),
       undoPass: (passId) =>
         withLatency(() => {
           ensure(localDb.writePasses(localDb.passes().filter((p) => p.id !== passId)));

@@ -77,7 +77,7 @@ function IncomingLikeCard({ item }: { item: IncomingLike }) {
 
   return (
     <article className="like-card" aria-label={`${from.firstName} liked ${what}`}>
-      <Link to={ROUTES.likeProfile(like.id)} className="like-card__person" aria-label={`View ${from.firstName}'s profile`}>
+      <Link to={ROUTES.likeProfile(like.id)} className="like-card__person">
         <Avatar photo={from.photos[0]} name={from.firstName} size={64} />
         <span className="like-card__who">
           <span className="like-card__name">
@@ -87,8 +87,9 @@ function IncomingLikeCard({ item }: { item: IncomingLike }) {
             Liked {what} · <time dateTime={like.createdAt}>{formatRelativeShort(like.createdAt)}</time>
           </span>
         </span>
-        <span className="like-card__view" aria-hidden="true">
-          Profile <Icon name="chevronRight" size={16} />
+        <span className="like-card__view">
+          <span className="visually-hidden">View profile</span>
+          <Icon name="chevronRight" size={20} />
         </span>
       </Link>
 

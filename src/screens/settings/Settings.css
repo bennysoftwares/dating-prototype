@@ -26,3 +26,4 @@
 .settings__danger { color: var(--color-danger); }
 .settings__pose { display: grid; place-items: center; gap: var(--space-3); padding: var(--space-6); border-radius: var(--radius-lg); background: var(--color-surface-sunken); text-align: center; color: var(--color-text-muted); }
 .settings__pose-frame { display: grid; place-items: center; width: 160px; height: 200px; border-radius: 50% / 45%; border: 3px dashed var(--color-accent); color: var(--color-accent); }
+.settings__plan-title { font-weight: var(--weight-semibold); margin-bottom: var(--space-2); }

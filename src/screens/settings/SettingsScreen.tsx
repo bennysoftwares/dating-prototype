@@ -5,6 +5,7 @@ import { TextField } from '../../components/form';
 import { Screen, Section } from '../../components/layout';
 import { BottomSheet, Button, IconButton, ListGroup, ListRow, SegmentedControl, useToast } from '../../components/ui';
 import { brand } from '../../config/brand';
+import { ALWAYS_FREE, PREMIUM_FEATURES } from '../../domain/entitlements';
 import { useConnections } from '../../connections/ConnectionsProvider';
 import { useAsync } from '../../hooks/useAsync';
 import { useOwnProfile } from '../../hooks/useOwnProfile';
@@ -26,7 +27,8 @@ export function SettingsScreen() {
   const toast = useToast();
   const { account, safety } = useRepositories();
   const { refresh } = useSession();
-  const { paused, incognito } = useAccount();
+  const { paused, incognito, plan } = useAccount();
+  const [planOpen, setPlanOpen] = useState(false);
   const { conversations } = useConnections();
   const { preference, setPreference } = useTheme();
   const own = useOwnProfile();
@@ -65,6 +67,7 @@ export function SettingsScreen() {
         <ListGroup label="Account">
           <ListRow icon="user" title="Profile status" subtitle={paused ? 'Paused · hidden from Discover' : incognito ? 'Active · Incognito' : 'Active'} to={ROUTES.privacy} chevron />
           <ListRow icon="verified" title="Verification" subtitle={verifiedLabel} to={ROUTES.verification} chevron />
+          <ListRow icon="sparkle" title="Plan" subtitle={plan === 'premium' ? 'Premium' : 'Free'} onClick={() => setPlanOpen(true)} chevron />
           <ListRow icon="edit" title="Edit profile" to={ROUTES.profileEdit} chevron />
         </ListGroup>
       </Section>
@@ -90,16 +93,36 @@ export function SettingsScreen() {
 
       <Section title="Notifications">
         <ListGroup label="Notifications">
-          <ListRow icon="bell" title="Notifications" subtitle="Coming later. The prototype never sends notifications." />
+          <ListRow icon="bell" title="Notifications" subtitle="Not available in this demo yet" />
         </ListGroup>
       </Section>
 
       <Section title="Your data">
         <ListGroup label="Your data">
           <ListRow icon="download" title="Download my data" subtitle="Everything stored about you, as a JSON file" onClick={() => void download()} />
-          <ListRow icon="trash" title={<span className="settings__danger">Delete account</span>} subtitle="Prototype: clears everything on this device" onClick={() => setDeleteOpen(true)} />
+          <ListRow icon="trash" title={<span className="settings__danger">Delete account</span>} subtitle="Removes everything stored on this device" onClick={() => setDeleteOpen(true)} />
         </ListGroup>
       </Section>
+
+      <BottomSheet
+        open={planOpen}
+        onClose={() => setPlanOpen(false)}
+        title={plan === 'premium' ? 'You have Premium' : 'You’re on Free'}
+        description="There are two plans: Free and Premium. Nothing essential is behind Premium."
+        footer={<Button size="lg" block onClick={() => setPlanOpen(false)}>Done</Button>}
+      >
+        <div className="filter-sheet">
+          <div>
+            <p className="settings__plan-title">Always free</p>
+            <ul className="settings__tips">{ALWAYS_FREE.map((f) => <li key={f}>{f}</li>)}</ul>
+          </div>
+          <div>
+            <p className="settings__plan-title">Premium adds</p>
+            <ul className="settings__tips">{PREMIUM_FEATURES.map((f) => <li key={f}>{f}</li>)}</ul>
+          </div>
+          <p className="settings__note">There are no Roses, Super Likes, Boosts or paid ranking. Premium isn't available to buy in this demo.</p>
+        </div>
+      </BottomSheet>
 
       <BottomSheet
         open={deleteOpen}

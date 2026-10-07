@@ -20,7 +20,8 @@ const SessionContext = createContext<SessionContextValue | null>(null);
  * real authentication (Supabase Auth etc.) slots in here later.
  */
 export function SessionProvider({ children }: { children: ReactNode }) {
-  const { users } = useRepositories();
+  const repos = useRepositories();
+  const { users } = repos;
   const [state, setState] = useState<SessionState>({ status: 'loading', user: null, error: null });
 
   const refresh = useCallback(async () => {
@@ -35,6 +36,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Account changes from elsewhere (another tab, the debug panel) apply without a reload.
+  useEffect(() => repos.matches.subscribe(() => void refresh()), [repos, refresh]);
 
   const value = useMemo(() => ({ state, refresh }), [state, refresh]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

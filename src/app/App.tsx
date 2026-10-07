@@ -1,4 +1,5 @@
 import { RouterProvider } from 'react-router';
+import { AppErrorBoundary } from './AppErrorBoundary';
 import { ToastProvider } from '../components/ui/Toast';
 import { RepositoryProvider } from '../repositories/RepositoryContext';
 import { SessionProvider } from '../session/SessionProvider';
@@ -7,14 +8,16 @@ import { router } from './router';
 
 export function App() {
   return (
-    <ThemeProvider>
-      <RepositoryProvider>
-        <SessionProvider>
-          <ToastProvider>
-            <RouterProvider router={router} />
-          </ToastProvider>
-        </SessionProvider>
-      </RepositoryProvider>
-    </ThemeProvider>
+    <AppErrorBoundary>
+      <ThemeProvider>
+        <RepositoryProvider>
+          <SessionProvider>
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
+          </SessionProvider>
+        </RepositoryProvider>
+      </ThemeProvider>
+    </AppErrorBoundary>
   );
 }

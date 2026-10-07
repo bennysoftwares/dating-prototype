@@ -80,7 +80,7 @@ export function ShareDateSheet({ open, onClose, plan, person }: ShareDateSheetPr
         </dl>
         <pre className="share-date__text">{text}</pre>
         <p className="share-date__note">
-          Prototype: nothing is sent automatically, and there's no emergency-service integration yet. Meet somewhere public and trust your instincts.
+          Nothing is sent automatically, and this demo has no emergency-service integration. Meet somewhere public and trust your instincts.
         </p>
       </div>
     </BottomSheet>

@@ -73,21 +73,23 @@ export function DiscoverProfileScreen() {
   const queue = view ? [...view.picks, ...(view.exploreOpened ? view.explore : [])] : [];
   const position = queue.findIndex((c) => c.profile.id === profileId);
 
+  // Premium only: one-step rewind of the decision just made. Free has no rewind.
+  const rewindAction = discovery.canRewind
+    ? {
+        label: 'Rewind',
+        onSelect: () => {
+          void discovery.rewind().then((restored) => {
+            if (restored) navigate(ROUTES.discoverProfile(restored.profile.id), { replace: true });
+          });
+        },
+      }
+    : undefined;
+
   const onPass = async () => {
     setBusy(true);
     try {
       await discovery.pass(candidate);
-      toast({
-        message: `You passed on ${name}`,
-        action: {
-          label: 'Undo',
-          onSelect: () => {
-            void discovery.undoPass().then((restored) => {
-              if (restored) navigate(ROUTES.discoverProfile(restored.profile.id), { replace: true });
-            });
-          },
-        },
-      });
+      toast({ message: `You passed on ${name}`, action: rewindAction });
       goNext();
     } catch {
       toast({ message: 'That didn’t save. Try again.' });
@@ -103,7 +105,7 @@ export function DiscoverProfileScreen() {
       navigate(`${ROUTES.matchCelebration(match.id)}?from=discover`, { replace: true });
       return;
     }
-    toast({ message: comment.trim() ? `Like and message sent to ${name}` : `Like sent to ${name}` });
+    toast({ message: comment.trim() ? `Like and message sent to ${name}` : `Like sent to ${name}`, action: rewindAction });
     goNext();
   };
 
