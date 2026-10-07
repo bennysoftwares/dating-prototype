@@ -1,4 +1,4 @@
-import { createDemoPreferences, createDemoProfile, createSeed } from '../../data/mock';
+import { createDemoPreferences, createDemoProfile, createMockConnections, createSeed } from '../../data/mock';
 import type { DailyPicks, Like, Match, Message, Pass, Preferences, Profile, User } from '../../domain/types';
 import { storage } from '../../storage/storage';
 import { STORAGE_KEYS } from '../../storage/keys';
@@ -10,8 +10,9 @@ import { sleep } from '../../utils/sleep';
  *
  * v2: onboarding. New accounts start un-onboarded; own profile id is "p-me".
  * v3: discovery. ~28 mock profiles with activity data; likes, passes, daily picks.
+ * v4: matching & messaging. Received likes, match contexts, read markers, drafts.
  */
-export const DB_SCHEMA_VERSION = 3;
+export const DB_SCHEMA_VERSION = 4;
 
 interface DbMeta {
   schemaVersion: number;
@@ -27,25 +28,53 @@ export const localDb = {
   ensureSeeded(): void {
     const meta = storage.get<DbMeta | null>(K.dbMeta.key, null);
     if (meta?.schemaVersion === DB_SCHEMA_VERSION && this.user()) return;
-    if (meta?.schemaVersion === 2 && this.user()) return this.migrateFromV2();
+    if ((meta?.schemaVersion === 2 || meta?.schemaVersion === 3) && this.user()) return this.migrate(meta.schemaVersion);
     this.reset();
   },
 
-  /** Keep the user's account, own profile and preferences; refresh everyone else. */
-  migrateFromV2(): void {
+  /**
+   * Keep the user's account, own profile and preferences (and, from v3, their
+   * discovery history); refresh everyone else and seed Part 4 connections.
+   */
+  migrate(from: number): void {
     const seed = createSeed();
     const user = this.user()!;
     const own = this.profiles().find((p) => p.userId === user.id);
     storage.set(K.dbProfiles.key, own ? [own, ...seed.profiles] : seed.profiles, K.dbProfiles.version);
-    storage.set(K.dbMatches.key, seed.matches, K.dbMatches.version);
-    storage.set(K.dbMessages.key, seed.messages, K.dbMessages.version);
-    this.resetDiscovery();
+    if (from < 3) this.resetDiscovery();
+    else this.writeLikes(this.likes().filter((l) => l.fromUserId === user.id));
+    this.resetConnections();
     storage.set<DbMeta>(K.dbMeta.key, { schemaVersion: DB_SCHEMA_VERSION, seededAt: new Date().toISOString() });
   },
 
-  /** Clear likes, passes and today's picks (debug and reset). */
+  /**
+   * Replace matches, messages, received likes and drafts with fresh mock data
+   * built around the user's own profile. Sent likes and passes are kept.
+   */
+  resetConnections(): void {
+    const user = this.user();
+    const own = user && this.profiles().find((p) => p.id === user.profileId);
+    const prefs = this.preferences();
+    const sent = user ? this.likes().filter((l) => l.fromUserId === user.id) : [];
+    storage.remove(K.drafts.key);
+    if (!user || !own || !prefs || !user.onboardingComplete) {
+      this.writeMatches([]);
+      this.writeMessages([]);
+      this.writeLikes(sent);
+      return;
+    }
+    const decided = new Set([...sent.map((l) => l.toProfileId), ...this.passes().map((p) => p.toProfileId)]);
+    const others = this.profiles().filter((p) => p.userId !== user.id);
+    const seed = createMockConnections(own, prefs, others, decided);
+    this.writeMatches(seed.matches);
+    this.writeMessages(seed.messages);
+    this.writeLikes([...sent, ...seed.receivedLikes]);
+  },
+
+  /** Clear the user's own likes, passes and today's picks. Likes received are kept. */
   resetDiscovery(): void {
-    storage.set(K.dbLikes.key, [], K.dbLikes.version);
+    const me = this.user()?.id;
+    storage.set(K.dbLikes.key, this.likes().filter((l) => me && l.fromUserId !== me), K.dbLikes.version);
     storage.set(K.dbPasses.key, [], K.dbPasses.version);
     storage.set(K.dbDailyPicks.key, null, K.dbDailyPicks.version);
   },
@@ -59,6 +88,7 @@ export const localDb = {
     storage.set(K.dbMatches.key, seed.matches, K.dbMatches.version);
     storage.set(K.dbMessages.key, seed.messages, K.dbMessages.version);
     this.resetDiscovery();
+    storage.remove(K.drafts.key);
     storage.remove(K.onboardingDraft.key);
     storage.remove(K.onboardingPhotos.key);
     storage.set<DbMeta>(K.dbMeta.key, { schemaVersion: DB_SCHEMA_VERSION, seededAt: new Date().toISOString() });
@@ -73,6 +103,7 @@ export const localDb = {
     this.writePreferences(createDemoPreferences());
     this.writeUser({ ...this.user()!, onboardingComplete: true });
     this.resetDiscovery();
+    this.resetConnections();
     storage.remove(K.onboardingDraft.key);
     storage.remove(K.onboardingPhotos.key);
   },
@@ -85,6 +116,7 @@ export const localDb = {
     storage.set(K.dbProfiles.key, this.profiles().filter((p) => p.userId !== user.id), K.dbProfiles.version);
     storage.set(K.dbPreferences.key, null, K.dbPreferences.version);
     this.resetDiscovery();
+    this.resetConnections();
     storage.remove(K.onboardingDraft.key);
     storage.remove(K.onboardingPhotos.key);
   },
@@ -118,6 +150,12 @@ export const localDb = {
     return storage.get<DailyPicks | null>(K.dbDailyPicks.key, null, {
       validate: (v): v is DailyPicks | null => v === null || (isObject(v) && Array.isArray((v as DailyPicks).profileIds)),
     });
+  },
+  writeMatches(matches: Match[]): boolean {
+    return storage.set(K.dbMatches.key, matches, K.dbMatches.version);
+  },
+  writeMessages(messages: Message[]): boolean {
+    return storage.set(K.dbMessages.key, messages, K.dbMessages.version);
   },
   writeLikes(likes: Like[]): boolean {
     return storage.set(K.dbLikes.key, likes, K.dbLikes.version);

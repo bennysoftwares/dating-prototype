@@ -93,8 +93,12 @@ export function DiscoverProfileScreen() {
   };
 
   const onSend = async (target: LikeTarget, comment: string) => {
-    await discovery.like(candidate, target, comment);
+    const match = await discovery.like(candidate, target, comment);
     setLikeTarget(null);
+    if (match) {
+      navigate(`${ROUTES.matchCelebration(match.id)}?from=discover`, { replace: true });
+      return;
+    }
     toast({ message: comment.trim() ? `Like and message sent to ${name}` : `Like sent to ${name}` });
     goNext();
   };

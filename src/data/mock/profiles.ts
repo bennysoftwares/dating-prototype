@@ -337,6 +337,27 @@ const SEEDS: Seed[] = [
     activeHoursAgo: 50,
   },
   {
+    key: 'isabel', firstName: 'Isabel', birthDate: '1998-12-01', gender: 'woman', intent: 'long_term', location: PLACES.majorna, heightCm: 169,
+    job: 'Travel writer', education: 'Stockholm University', smoking: 'never', drinking: 'socially', children: 'none', wantsChildren: 'wants',
+    languages: ['Swedish', 'English', 'Spanish', 'Japanese'], interests: ['travel', 'writing', 'horror', 'food', 'photography'], tones: [T.sea, T.ember, T.sand, T.dusk],
+    prompts: [
+      ['A random fact I love...', 'I once missed a train in Japan by 4 seconds. The train was 4 seconds early. I am still not over it.'],
+      ['Together we could...', 'Plan a trip, get lost on purpose, and find the best tiny restaurant in town.'],
+    ],
+    bio: 'Professional over-planner, amateur under-packer.',
+    activeHoursAgo: 4,
+  },
+  {
+    key: 'freja', firstName: 'Freja', birthDate: '1997-04-17', gender: 'woman', intent: 'long_term_open_short', location: PLACES.hisingen, heightCm: 173,
+    job: 'Landscape architect', smoking: 'never', drinking: 'socially', children: 'none', wantsChildren: 'open',
+    languages: ['Swedish', 'English'], interests: ['nature', 'hiking', 'art', 'coffee', 'movies'], tones: [T.sage, T.sand, T.clay],
+    prompts: [
+      ['A perfect Sunday looks like...', 'A long walk somewhere green and a coffee that is mostly an excuse to sit down.'],
+      ['A green flag I look for...', 'You notice small things.'],
+    ],
+    activeHoursAgo: 24 * 18,
+  },
+  {
     key: 'oskar', firstName: 'Oskar', birthDate: '1998-06-21', gender: 'man', intent: 'long_term', location: PLACES.haga, heightCm: 184,
     job: 'Electrician', smoking: 'never', drinking: 'socially', children: 'none', wantsChildren: 'wants',
     languages: ['Swedish', 'English'], interests: ['football', 'diy', 'cooking', 'camping', 'music'], tones: [T.stone, T.sea, T.sand],

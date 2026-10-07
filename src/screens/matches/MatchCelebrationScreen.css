@@ -1,0 +1,36 @@
+.celebrate {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: calc(var(--safe-top) + var(--space-8)) calc(var(--gutter) + var(--safe-right)) calc(var(--safe-bottom) + var(--space-4)) calc(var(--gutter) + var(--safe-left));
+}
+.celebrate__inner { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: var(--space-3); }
+.celebrate__photos { position: relative; width: 260px; height: 220px; margin-bottom: var(--space-6); }
+.celebrate__photo { position: absolute; top: 0; width: 150px; border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); }
+.celebrate__photo--me { left: 0; transform: rotate(-6deg); animation: celebrate-left var(--duration-slow) var(--ease-out) both; }
+.celebrate__photo--them { right: 0; transform: rotate(6deg); animation: celebrate-right var(--duration-slow) var(--ease-out) 60ms both; }
+@keyframes celebrate-left { from { opacity: 0; transform: translateX(-24px) rotate(-10deg); } to { opacity: 1; transform: rotate(-6deg); } }
+@keyframes celebrate-right { from { opacity: 0; transform: translateX(24px) rotate(10deg); } to { opacity: 1; transform: rotate(6deg); } }
+.celebrate__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 10vw, 3rem);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  outline: none;
+}
+.celebrate__sub { color: var(--color-text-muted); font-size: var(--text-lg); }
+.celebrate__context { list-style: none; margin: var(--space-4) 0 0; padding: 0; display: grid; gap: var(--space-2); color: var(--color-text); }
+.celebrate__comment {
+  max-width: 34ch;
+  margin-top: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+.celebrate__actions { display: flex; flex-direction: column; gap: var(--space-2); padding-top: var(--space-6); }

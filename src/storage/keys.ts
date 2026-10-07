@@ -10,6 +10,8 @@ export const STORAGE_KEYS = {
   dbLikes: { key: 'db.likes', version: 1 },
   dbPasses: { key: 'db.passes', version: 1 },
   dbDailyPicks: { key: 'db.dailyPicks', version: 1 },
+  /** Unsent message drafts per match. */
+  drafts: { key: 'drafts', version: 1 },
   onboardingDraft: { key: 'onboarding.draft', version: 1 },
   /** Photos are stored apart from the draft so typing never rewrites large image data. */
   onboardingPhotos: { key: 'onboarding.photos', version: 1 },

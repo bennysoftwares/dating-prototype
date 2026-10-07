@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { DailyPicks, ID, Like, LikeTarget, Pass, Preferences, Profile } from '../domain/types';
+import type { DailyPicks, ID, Like, LikeTarget, Match, Pass, Preferences, Profile } from '../domain/types';
 import { planDailyPicks, preferenceFingerprint, rankCandidates, todayKey, type RankedCandidate, type RankingResult } from '../recommendation';
 import { useRepositories } from '../repositories/RepositoryContext';
 
@@ -37,7 +37,8 @@ interface DiscoveryContextValue {
   decisionFor: (profileId: ID) => { kind: 'like'; like: Like } | { kind: 'pass'; pass: Pass } | null;
   /** The next undecided person after this one, in the order the user sees them. */
   nextAfter: (profileId: ID) => RankedCandidate | undefined;
-  like: (candidate: RankedCandidate, target: LikeTarget, comment?: string) => Promise<void>;
+  /** Resolves with the new match when the like was mutual. */
+  like: (candidate: RankedCandidate, target: LikeTarget, comment?: string) => Promise<Match | null>;
   pass: (candidate: RankedCandidate) => Promise<void>;
   undoPass: () => Promise<RankedCandidate | undefined>;
   openExplore: () => Promise<void>;
@@ -161,6 +162,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       };
       let daily: DailyPicks | null = null;
+      let match: Match | null = null;
       await mutate(
         (d) => {
           daily = { ...d.daily, undoablePassId: null };
@@ -168,10 +170,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
         },
         async () => {
           const saved = await repos.discovery.sendLike({ toProfileId: candidate.profile.id, toUserId: candidate.profile.userId, target, comment });
+          match = saved.match;
           if (daily) await repos.discovery.saveDailyPicks(daily);
-          setData((d) => d && { ...d, likes: d.likes.map((l) => (l.id === optimistic.id ? saved : l)) });
+          setData((d) => d && { ...d, likes: d.likes.map((l) => (l.id === optimistic.id ? saved.like : l)) });
         },
       );
+      return match;
     },
     [mutate, repos],
   );
