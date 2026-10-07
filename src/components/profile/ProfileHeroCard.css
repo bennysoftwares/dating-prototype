@@ -49,3 +49,5 @@
   font-weight: var(--weight-medium);
 }
 .hero-card--has-action .hero-card__info { padding-right: calc(var(--space-6) + 56px); }
+.hero-card__verified { display: inline-flex; align-self: center; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+.hero-card__verified svg { color: #8fd0ff; }

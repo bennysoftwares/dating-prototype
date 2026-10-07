@@ -1,4 +1,4 @@
-import type { ApproxLocation, Photo, Profile } from '../../domain/types';
+import type { ApproxLocation, EducationLevel, Photo, Profile } from '../../domain/types';
 import { daysAgo, hoursAgo } from '../../utils/time';
 import { TONES } from './tones';
 
@@ -24,6 +24,8 @@ export function createDemoProfile(now: string): Profile {
     heightCm: 182,
     job: 'Software engineer',
     education: 'MSc Computer Science',
+    educationLevel: 'postgraduate',
+    verification: { photo: 'unverified', id: 'unverified' },
     smoking: 'never',
     drinking: 'socially',
     children: 'none',
@@ -72,11 +74,28 @@ type Seed = Omit<Profile, 'id' | 'userId' | 'photos' | 'prompts' | 'visibility' 
   activeHoursAgo: number;
 };
 
+/** Part 5 extras, kept apart from the seeds so they're easy to scan. */
+const EDUCATION: Record<string, EducationLevel> = {
+  emma: 'postgraduate', lina: 'postgraduate', maja: 'undergraduate', ida: 'undergraduate', hanna: 'undergraduate',
+  elin: 'postgraduate', amanda: 'postgraduate', sara: 'postgraduate', klara: 'undergraduate', fatima: 'postgraduate',
+  alice: 'postgraduate', daniel: 'postgraduate', isabel: 'undergraduate', moa: 'undergraduate', oskar: 'vocational',
+  ali: 'postgraduate', nadia: 'vocational', tove: 'vocational', julia: 'secondary', leo: 'secondary', wilma: 'vocational',
+  linnea: 'undergraduate', ebba: 'undergraduate', johanna: 'postgraduate', matilda: 'postgraduate', robin: 'undergraduate',
+  nora: 'secondary', sofia: 'undergraduate', freja: 'postgraduate', elsa: 'undergraduate',
+};
+const PHOTO_VERIFIED = new Set(['ida', 'hanna', 'alice', 'emma', 'sofia', 'isabel', 'fatima', 'daniel', 'elin', 'moa']);
+const ID_VERIFIED = new Set(['alice', 'fatima', 'daniel']);
+/** People who chose to hide their distance. */
+const HIDE_DISTANCE = new Set(['elsa', 'tove']);
+
 function build(seed: Seed, now: number): Profile {
   const { key, tones, prompts, activeHoursAgo, visibility, ...rest } = seed;
   const id = `p-${key}`;
   return {
     ...rest,
+    educationLevel: EDUCATION[key],
+    verification: { photo: PHOTO_VERIFIED.has(key) ? 'verified' : 'unverified', id: ID_VERIFIED.has(key) ? 'verified' : 'unverified' },
+    ...(HIDE_DISTANCE.has(key) ? { hideDistance: true } : {}),
     id,
     userId: `u-${key}`,
     photos: photos(id, seed.firstName, tones),

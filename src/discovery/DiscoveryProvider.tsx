@@ -92,9 +92,34 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     }
   }, [repos]);
 
+  // While this provider is saving its own change, storage events are deferred so a
+  // half-written state (e.g. a pass saved before its undo marker) is never loaded.
+  const busy = useRef(0);
+  const deferred = useRef(false);
+  const guard = useCallback(
+    async <T,>(fn: () => Promise<T>): Promise<T> => {
+      busy.current += 1;
+      try {
+        return await fn();
+      } finally {
+        busy.current -= 1;
+        if (busy.current === 0 && deferred.current) {
+          deferred.current = false;
+          void refresh();
+        }
+      }
+    },
+    [refresh],
+  );
+
   useEffect(() => {
     void refresh();
-  }, [refresh]);
+    // Blocks, likes, passes and new matches elsewhere in the app must update picks right away.
+    return repos.matches.subscribe(() => {
+      if (busy.current > 0) deferred.current = true;
+      else void refresh();
+    });
+  }, [refresh, repos]);
 
   const view = useMemo<DiscoveryView | null>(() => {
     if (!data) return null;
@@ -151,7 +176,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const like = useCallback<DiscoveryContextValue['like']>(
-    async (candidate, target, comment) => {
+    (candidate, target, comment) => guard(async () => {
       const optimistic: Like = {
         id: `pending-${candidate.profile.id}`,
         fromUserId: dataRef.current?.viewer.userId ?? '',
@@ -176,12 +201,12 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
         },
       );
       return match;
-    },
-    [mutate, repos],
+    }),
+    [mutate, repos, guard],
   );
 
   const pass = useCallback<DiscoveryContextValue['pass']>(
-    async (candidate) => {
+    (candidate) => guard(async () => {
       const saved = await repos.discovery.pass(candidate.profile.id);
       const current = dataRef.current;
       if (!current) return;
@@ -192,11 +217,11 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
           await repos.discovery.saveDailyPicks(daily);
         },
       );
-    },
-    [mutate, repos],
+    }),
+    [mutate, repos, guard],
   );
 
-  const undoPass = useCallback<DiscoveryContextValue['undoPass']>(async () => {
+  const undoPass = useCallback<DiscoveryContextValue['undoPass']>(() => guard(async () => {
     const current = dataRef.current;
     const passId = current?.daily.undoablePassId;
     const target = current?.passes.find((p) => p.id === passId);
@@ -210,16 +235,16 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       },
     );
     return current.ranking.eligible.find((r) => r.profile.id === target.toProfileId);
-  }, [mutate, repos]);
+  }), [mutate, repos, guard]);
 
-  const openExplore = useCallback(async () => {
+  const openExplore = useCallback(() => guard(async () => {
     const current = dataRef.current;
     if (!current) return;
     const daily = { ...current.daily, exploreOpened: true };
     await mutate((d) => ({ ...d, daily }), async () => {
       await repos.discovery.saveDailyPicks(daily);
     });
-  }, [mutate, repos]);
+  }), [mutate, repos, guard]);
 
   const value = useMemo<DiscoveryContextValue>(
     () => ({ status, error, data, view, refresh, getCandidate, decisionFor, nextAfter, like, pass, undoPass, openExplore }),

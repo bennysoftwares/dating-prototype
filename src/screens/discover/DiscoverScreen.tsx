@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router';
 import { ROUTES } from '../../app/navigation';
 import { PickCard } from '../../components/discovery/PickCard';
 import { Screen, Section } from '../../components/layout';
-import { Button, EmptyState, ErrorState, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import { Button, EmptyState, ErrorState, Icon, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import { useAccount } from '../../session/useAccount';
 import { useDiscovery } from '../../discovery/DiscoveryProvider';
 import { useScrollRestoration } from '../../hooks/useScrollRestoration';
 import './DiscoverScreen.css';
@@ -16,6 +17,7 @@ export function DiscoverScreen() {
   const navigate = useNavigate();
   const toast = useToast();
   const { status, error, view, refresh, undoPass, openExplore } = useDiscovery();
+  const { paused, incognito, setPaused } = useAccount();
 
   // Re-rank quietly whenever Discover is shown (e.g. after editing preferences).
   useEffect(() => {
@@ -32,12 +34,36 @@ export function DiscoverScreen() {
     if (restored) toast({ message: `${restored.profile.firstName} is back in your picks` });
   };
 
-  const undoAction = view?.undoablePass && (
-    <IconButton icon="undo" label={`Undo last pass${view.undoablePass.candidate ? ` (${view.undoablePass.candidate.profile.firstName})` : ''}`} onClick={() => void onUndo()} />
+  const actions = (
+    <>
+      {view?.undoablePass && (
+        <IconButton icon="undo" label={`Undo last pass${view.undoablePass.candidate ? ` (${view.undoablePass.candidate.profile.firstName})` : ''}`} onClick={() => void onUndo()} />
+      )}
+      <IconButton icon="filter" label="Filters" onClick={() => navigate(ROUTES.filters)} />
+    </>
   );
 
+  if (paused) {
+    return (
+      <Screen title="Today's picks" eyebrow={today}>
+        <EmptyState
+          icon="pause"
+          title="Your profile is paused"
+          action={<Button onClick={() => void setPaused(false)}>Unpause profile</Button>}
+        >
+          You're not shown to new people, and Discover is resting too. Your matches and conversations are all still here.
+        </EmptyState>
+      </Screen>
+    );
+  }
+
   return (
-    <Screen title="Today's picks" eyebrow={today} actions={undoAction}>
+    <Screen title="Today's picks" eyebrow={today} actions={actions}>
+      {incognito && (
+        <p className="discover__banner">
+          <Icon name="incognito" size={18} /> Incognito is on. Only people you like can see your profile.
+        </p>
+      )}
       {status === 'loading' && (
         <LoadingRegion label="Loading today's picks">
           <div className="discover__loading">

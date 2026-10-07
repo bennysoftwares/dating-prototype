@@ -1,5 +1,5 @@
 import { createMatchFromLikes, snapshotFor } from '../../domain/matching';
-import type { Like, LikeTarget, Match, Profile } from '../../domain/types';
+import type { DatePlan, Like, LikeTarget, Match, Profile } from '../../domain/types';
 import { createId } from '../../utils/id';
 import { localDb } from './localDb';
 
@@ -72,7 +72,17 @@ const nameOf = (userId: string) => localDb.profiles().find((p) => p.userId === u
 
 export const debugTools = {
   createIncomingLike(withComment: boolean): string {
-    const { me, prefs, matchedWith, likedMe, passed } = context();
+    const { user, me, prefs, matchedWith, likedMe, passed } = context();
+    if (user.status === 'paused') return 'Your profile is paused, so nobody new can see it or like it.';
+    if (user.incognito) {
+      // Incognito: only people you've liked can see you, so their like is always mutual.
+      const sent = localDb.likes().filter((l) => l.fromUserId === user.id && !matchedWith.has(l.toUserId));
+      const mine = sent[sent.length - 1];
+      const them = mine && localDb.profiles().find((p) => p.userId === mine.toUserId);
+      if (!mine || !them) return 'Incognito is on: only people you like can see you. Like someone in Discover first.';
+      saveMatch(mine, likeFrom(them, me, randomTarget(me), withComment ? pick(COMMENTS) : undefined), user.id);
+      return `Incognito: ${them.firstName} could see you because you liked them. It's mutual.`;
+    }
     const pool = localDb
       .profiles()
       .filter((p) => p.userId !== me.userId && prefs.interestedIn.includes(p.gender) && !matchedWith.has(p.userId) && !likedMe.has(p.userId) && !passed.has(p.id));
@@ -139,6 +149,84 @@ export const debugTools = {
       ),
     );
     return `Your chat with ${nameOf(match.userIds.find((id) => id !== user.id)!)} is now ${days} days quiet.`;
+  },
+
+  /* ---------- Part 5: account states ---------- */
+
+  toggleAccount(kind: 'paused' | 'incognito'): string {
+    const { user } = context();
+    if (kind === 'paused') {
+      const paused = user.status !== 'paused';
+      localDb.writeUser({ ...user, status: paused ? 'paused' : 'active' });
+      return paused ? 'Profile paused.' : 'Profile active.';
+    }
+    localDb.writeUser({ ...user, incognito: !user.incognito });
+    return !user.incognito ? 'Incognito on.' : 'Incognito off.';
+  },
+
+  toggleVerification(kind: 'photo' | 'id'): string {
+    const { me } = context();
+    const current = me.verification?.[kind] === 'verified';
+    const verification = { photo: me.verification?.photo ?? 'unverified', id: me.verification?.id ?? 'unverified', [kind]: current ? 'unverified' : 'verified' } as const;
+    localDb.writeOwnProfile({ ...me, verification });
+    return `${kind === 'photo' ? 'Photo' : 'ID'} ${current ? 'not verified' : 'verified'}.`;
+  },
+
+  /* ---------- Part 5: dates ---------- */
+
+  /** The other person in your latest chat suggests a date. */
+  theyProposeDate(): string {
+    const { user } = context();
+    const match = latestConversation(user.id);
+    if (!match) return 'No conversations yet.';
+    const other = match.userIds.find((id) => id !== user.id)!;
+    const now = new Date();
+    const day = new Date(now.getTime() + 3 * DAY);
+    const iso = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+    const plan: DatePlan = { id: createId('date'), matchId: match.id, proposedBy: other, date: iso, time: '18:30', venue: 'Drinks at Haga Nygata', status: 'proposed', createdAt: now.toISOString() };
+    localDb.writeDates([...localDb.dates(), plan]);
+    localDb.writeMessages([...localDb.messages(), { id: createId('msg'), matchId: match.id, senderId: other, kind: 'date', body: '', dateId: plan.id, sentAt: plan.createdAt }]);
+    localDb.writeMatches(localDb.matches().map((m) => (m.id === match.id ? { ...m, lastActivityAt: plan.createdAt } : m)));
+    return `${nameOf(other)} suggested a date.`;
+  },
+
+  /** The other person accepts your most recent suggestion. */
+  theyAcceptDate(): string {
+    const { user } = context();
+    const plan = [...localDb.dates()].reverse().find((d) => d.status === 'proposed' && d.proposedBy === user.id);
+    if (!plan) return 'You have no pending date suggestions.';
+    localDb.writeDates(localDb.dates().map((d) => (d.id === plan.id ? { ...d, status: 'accepted', respondedAt: new Date().toISOString() } : d)));
+    const match = localDb.matches().find((m) => m.id === plan.matchId);
+    return `${nameOf(match?.userIds.find((id) => id !== user.id) ?? '')} accepted your date.`;
+  },
+
+  /** Move the latest accepted (or any) date into the past so "How did it go?" appears. */
+  completeDate(): string {
+    const { user } = context();
+    const mine = new Set(localDb.matches().filter((m) => m.userIds.includes(user.id)).map((m) => m.id));
+    const plans = localDb.dates().filter((d) => mine.has(d.matchId) && d.status !== 'changed' && d.status !== 'cancelled');
+    const plan = plans.find((d) => d.status === 'accepted') ?? plans[plans.length - 1];
+    if (!plan) return 'No dates planned yet.';
+    const past = new Date(Date.now() - DAY);
+    const iso = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
+    localDb.writeDates(localDb.dates().map((d) => (d.id === plan.id ? { ...d, date: iso, status: 'accepted' } : d)));
+    localDb.writeDateFeedback(localDb.dateFeedback().filter((f) => f.dateId !== plan.id));
+    const match = localDb.matches().find((m) => m.id === plan.matchId);
+    return `Your date with ${nameOf(match?.userIds.find((id) => id !== user.id) ?? '')} happened yesterday.`;
+  },
+
+  /* ---------- Part 5: safety ---------- */
+
+  unblockAll(): string {
+    const { user } = context();
+    const count = localDb.blocks().filter((b) => b.blockerId === user.id).length;
+    localDb.writeBlocks(localDb.blocks().filter((b) => b.blockerId !== user.id));
+    return `Unblocked ${count} ${count === 1 ? 'person' : 'people'}.`;
+  },
+
+  clearReports(): string {
+    localDb.writeReports([]);
+    return 'Reports cleared.';
   },
 
   resetConversations(): string {

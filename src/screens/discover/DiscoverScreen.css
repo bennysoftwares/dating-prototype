@@ -7,3 +7,4 @@
 .discover__line-skeleton { max-width: 260px; }
 .discover__hero-skeleton { border-radius: var(--radius-xl); }
 .discover__done { color: var(--color-text-muted); }
+.discover__banner { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); background: var(--color-surface-sunken); font-size: var(--text-sm); color: var(--color-text-muted); margin-bottom: calc(var(--space-4) * -1); }

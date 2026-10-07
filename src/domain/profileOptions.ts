@@ -1,4 +1,4 @@
-import type { ChildrenStatus, Frequency, Gender, WantsChildren } from './types';
+import type { ChildrenStatus, DateOutcome, EducationLevel, Frequency, Gender, ReportCategory, WantsChildren } from './types';
 
 /* Limits ------------------------------------------------------------ */
 
@@ -122,3 +122,28 @@ export const PROFILE_PROMPTS = [
   'A random fact I love...',
   'The best way to spend a Friday night...',
 ] as const;
+
+export const EDUCATION_LEVEL_OPTIONS: Option<EducationLevel>[] = [
+  { value: 'secondary', label: 'Secondary school' },
+  { value: 'vocational', label: 'Vocational / trade' },
+  { value: 'undergraduate', label: 'Undergraduate degree' },
+  { value: 'postgraduate', label: 'Postgraduate degree' },
+];
+
+export const REPORT_CATEGORY_LABELS: Record<ReportCategory, string> = {
+  fake_profile: 'Fake profile',
+  harassment: 'Harassment',
+  sexual_content: 'Sexual or inappropriate content',
+  hate_or_threats: 'Hate or threats',
+  underage: 'Underage',
+  spam_scam: 'Spam or scam',
+  privacy_concern: 'Someone I know / privacy concern',
+  other: 'Other',
+};
+
+export const DATE_OUTCOME_LABELS: Record<DateOutcome, string> = {
+  see_again: "I'd like to see them again",
+  not_sure: 'Not sure yet',
+  not_a_match: 'Not a match for me',
+  did_not_go: "I didn't go on the date",
+};

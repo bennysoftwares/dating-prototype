@@ -10,6 +10,11 @@ export const STORAGE_KEYS = {
   dbLikes: { key: 'db.likes', version: 1 },
   dbPasses: { key: 'db.passes', version: 1 },
   dbDailyPicks: { key: 'db.dailyPicks', version: 1 },
+  dbBlocks: { key: 'db.blocks', version: 1 },
+  dbReports: { key: 'db.reports', version: 1 },
+  dbDates: { key: 'db.dates', version: 1 },
+  dbDateFeedback: { key: 'db.dateFeedback', version: 1 },
+  dbPrivacy: { key: 'db.privacy', version: 1 },
   /** Unsent message drafts per match. */
   drafts: { key: 'drafts', version: 1 },
   onboardingDraft: { key: 'onboarding.draft', version: 1 },

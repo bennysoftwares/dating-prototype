@@ -4,13 +4,21 @@ import { ROUTES } from '../../app/navigation';
 import { Composer } from '../../components/connections/Composer';
 import { LikedSnapshot } from '../../components/connections/LikedSnapshot';
 import { MessageBubble } from '../../components/connections/MessageBubble';
-import { ActionList, Avatar, BottomSheet, Button, EmptyState, Icon, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import { DateCard } from '../../components/dates/DateCard';
+import { DateFeedbackSheet } from '../../components/dates/DateFeedbackSheet';
+import { DatePlanSheet } from '../../components/dates/DatePlanSheet';
+import { ShareDateSheet } from '../../components/dates/ShareDateSheet';
+import { SafetySheet } from '../../components/safety/SafetySheet';
+import { Avatar, Button, EmptyState, Icon, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import type { DatePlan } from '../../domain/types';
+import type { DateInput } from '../../repositories/types';
 import { useConnections } from '../../connections/ConnectionsProvider';
 import { useDrafts } from '../../connections/useDrafts';
 import { TONES } from '../../data/mock/tones';
 import { conversationHooks } from '../../domain/conversationHooks';
 import { describeContext } from '../../domain/matching';
 import { useKeyboardInset } from '../../hooks/useKeyboardInset';
+import { useSticky } from '../../hooks/useSticky';
 import { buildCompatibility } from '../../recommendation/compatibility';
 import { formatDay } from '../../utils/day';
 import { useBack } from '../onboarding/useStepNavigation';
@@ -28,11 +36,16 @@ export function ChatScreen() {
   const navigate = useNavigate();
   const back = useBack();
   const toast = useToast();
-  const { status, viewer, getConversation, sendMessage, markRead, setArchived, keepForLater } = useConnections();
+  const { status, viewer, getConversation, sendMessage, markRead, setArchived, keepForLater, getDate, feedbackFor, proposeDate, acceptDate, cancelDate, giveFeedback } =
+    useConnections();
   const { drafts, setDraft } = useDrafts();
-  const convo = getConversation(matchId);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const convo = useSticky(getConversation(matchId), menuOpen);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [planOpen, setPlanOpen] = useState(false);
+  const [changeOf, setChangeOf] = useState<DatePlan | undefined>(undefined);
+  const [shareId, setShareId] = useState<string | null>(null);
+  const [feedbackId, setFeedbackId] = useState<string | null>(null);
   const firstScroll = useRef(true);
   useKeyboardInset();
 
@@ -88,6 +101,20 @@ export function ChatScreen() {
   const sendPhoto = () =>
     void send(() => sendMessage(match.id, { kind: 'photo', body: '', photo: { tone: TONE_LIST[messages.length % TONE_LIST.length]! } }));
   const sendVoice = (durationSec: number) => void send(() => sendMessage(match.id, { kind: 'voice', body: '', voice: { durationSec } }));
+
+  const latestPlanId = convo.dates.filter((d) => d.status !== 'changed').sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.id;
+  const openPlan = (replace?: DatePlan) => {
+    setMenuOpen(false);
+    setChangeOf(replace);
+    setPlanOpen(true);
+  };
+  const submitPlan = async (input: DateInput) => {
+    await proposeDate(match.id, input, changeOf?.id);
+    setPlanOpen(false);
+    toast({ message: changeOf ? `New time suggested to ${other.firstName}` : `Date suggested to ${other.firstName}` });
+  };
+  const sharePlan = shareId ? getDate(shareId) ?? null : null;
+  const feedbackPlan = feedbackId ? getDate(feedbackId) : undefined;
 
   const archive = async (value: boolean) => {
     setMenuOpen(false);
@@ -157,6 +184,16 @@ export function ChatScreen() {
           </div>
         )}
 
+        {convo.awaitingFeedback && (
+          <div className="chat__banner" role="region" aria-label="How did it go?">
+            <p className="chat__banner-title">How did your date with {other.firstName} go?</p>
+            <p>Only you will see your answer.</p>
+            <div className="chat__banner-actions">
+              <Button size="sm" onClick={() => setFeedbackId(convo.awaitingFeedback!.id)}>Tell us privately</Button>
+            </div>
+          </div>
+        )}
+
         {hooks.length > 0 && (
           <section className="chat__hooks" aria-label="Conversation ideas">
             <p className="chat__hooks-title"><Icon name="sparkle" size={16} /> Conversation ideas</p>
@@ -181,6 +218,26 @@ export function ChatScreen() {
                   </li>
                 )}
                 <li className={lastOfGroup ? 'chat__item chat__item--last' : 'chat__item'}>
+                  {m.kind === 'date' && m.dateId ? (
+                    (() => {
+                      const plan = getDate(m.dateId);
+                      if (!plan) return null;
+                      return (
+                        <DateCard
+                          plan={plan}
+                          viewerId={viewer.userId}
+                          name={other.firstName}
+                          feedback={feedbackFor(plan.id)}
+                          superseded={plan.id !== latestPlanId && plan.status === 'proposed'}
+                          onAccept={() => void acceptDate(plan.id).then(() => toast({ message: `It's a date with ${other.firstName}` }))}
+                          onSuggestChange={() => openPlan(plan)}
+                          onCancel={() => void cancelDate(plan.id).then(() => toast({ message: 'Date suggestion cancelled' }))}
+                          onShare={() => setShareId(plan.id)}
+                          onFeedback={() => setFeedbackId(plan.id)}
+                        />
+                      );
+                    })()
+                  ) : (
                   <MessageBubble
                     message={m}
                     mine={m.senderId === viewer.userId}
@@ -189,6 +246,7 @@ export function ChatScreen() {
                     showTime={lastOfGroup}
                     onPlayVoice={() => toast({ message: 'Voice playback is coming in a later version' })}
                   />
+                  )}
                 </li>
               </Fragment>
             );
@@ -204,18 +262,36 @@ export function ChatScreen() {
         onSendVoice={sendVoice}
         name={other.firstName}
         inputRef={inputRef}
+        onPlanDate={convo.established ? () => openPlan() : undefined}
       />
 
-      <BottomSheet open={menuOpen} onClose={() => setMenuOpen(false)} title={other.firstName}>
-        <ActionList
-          actions={[
-            { label: 'View profile', icon: 'user', onSelect: () => { setMenuOpen(false); navigate(ROUTES.chatProfile(match.id)); } },
-            archived
-              ? { label: 'Unarchive conversation', icon: 'archive', onSelect: () => void archive(false) }
-              : { label: 'Archive conversation', icon: 'archive', onSelect: () => void archive(true) },
-          ]}
-        />
-      </BottomSheet>
+      <SafetySheet
+        person={other}
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        matchId={match.id}
+        onDone={() => navigate(ROUTES.matches, { replace: true })}
+        extraActions={[
+          { label: 'View profile', icon: 'user', onSelect: () => { setMenuOpen(false); navigate(ROUTES.chatProfile(match.id)); } },
+          ...(convo.established ? [{ label: 'Plan a date', icon: 'calendar' as const, onSelect: () => openPlan() }] : []),
+          archived
+            ? { label: 'Unarchive conversation', icon: 'archive', onSelect: () => void archive(false) }
+            : { label: 'Archive conversation', icon: 'archive', onSelect: () => void archive(true) },
+        ]}
+      />
+
+      <DatePlanSheet open={planOpen} onClose={() => setPlanOpen(false)} name={other.firstName} initial={changeOf} onSubmit={submitPlan} />
+      <ShareDateSheet open={sharePlan !== null} onClose={() => setShareId(null)} plan={sharePlan} person={other} />
+      <DateFeedbackSheet
+        open={Boolean(feedbackPlan)}
+        onClose={() => setFeedbackId(null)}
+        name={other.firstName}
+        onSubmit={async (input) => {
+          await giveFeedback({ dateId: feedbackPlan!.id, ...input });
+          setFeedbackId(null);
+          toast({ message: 'Thanks. That stays between you and us.' });
+        }}
+      />
     </div>
   );
 }

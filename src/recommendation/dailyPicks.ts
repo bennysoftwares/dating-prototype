@@ -12,7 +12,7 @@ export function todayKey(now = new Date()): string {
 
 /** Cheap stable hash of everything that changes who should be shown. */
 export function preferenceFingerprint(viewer: Profile, prefs: Preferences): string {
-  const input = JSON.stringify([prefs.interestedIn, prefs.age, prefs.distance, prefs.intents, prefs.smoking, prefs.drinking, prefs.children, prefs.wantsChildren, prefs.religion, viewer.location, viewer.intent]);
+  const input = JSON.stringify([prefs.interestedIn, prefs.age, prefs.distance, prefs.intents, prefs.smoking, prefs.drinking, prefs.children, prefs.wantsChildren, prefs.religion, prefs.politics, prefs.education, prefs.height, viewer.location, viewer.intent]);
   let h = 5381;
   for (let i = 0; i < input.length; i += 1) h = ((h << 5) + h + input.charCodeAt(i)) | 0;
   return (h >>> 0).toString(36);

@@ -16,13 +16,15 @@ interface ComposerProps {
   name: string;
   /** Lets the parent focus the box (e.g. "Send a message" on the Still interested? prompt). */
   inputRef: RefObject<HTMLTextAreaElement | null>;
+  /** Shown once both people have written; opens date planning. */
+  onPlanDate?: () => void;
 }
 
 /**
  * Message box pinned above the keyboard. Drafts are saved by the parent on every change.
  * Enter sends on devices with a keyboard; on phones Return adds a line, and you tap Send.
  */
-export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice, name, inputRef }: ComposerProps) {
+export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice, name, inputRef, onPlanDate }: ComposerProps) {
   const [emojiOpen, setEmojiOpen] = useState(false);
   const [attachOpen, setAttachOpen] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -97,7 +99,7 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
         </div>
       )}
       <div className="composer__row">
-        <IconButton icon="plus" label="Add a photo or voice note" onClick={() => setAttachOpen(true)} />
+        <IconButton icon="plus" label="Add a photo, voice note or date" onClick={() => setAttachOpen(true)} />
         <div className="composer__field">
           <label htmlFor="composer-input" className="visually-hidden">Message {name}</label>
           <textarea
@@ -126,11 +128,12 @@ export function Composer({ value, onChange, onSendText, onSendPhoto, onSendVoice
         </button>
       </div>
 
-      <BottomSheet open={attachOpen} onClose={() => setAttachOpen(false)} title="Add to message" description="Prototype: these send placeholders, nothing is uploaded.">
+      <BottomSheet open={attachOpen} onClose={() => setAttachOpen(false)} title="Add to message" description="Prototype: photos and voice notes are placeholders, nothing is uploaded.">
         <ActionList
           actions={[
             { label: 'Photo', icon: 'image', onSelect: () => { setAttachOpen(false); onSendPhoto(); } },
             { label: 'Voice note', icon: 'mic', onSelect: () => { setAttachOpen(false); setRecording(true); } },
+            ...(onPlanDate ? [{ label: 'Plan a date', icon: 'calendar' as const, onSelect: () => { setAttachOpen(false); onPlanDate(); } }] : []),
           ]}
         />
       </BottomSheet>

@@ -14,6 +14,7 @@ export type ISODate = string;
 /* Account                                                             */
 /* ------------------------------------------------------------------ */
 
+/** "paused": hidden from Discover; matches and chats keep working. */
 export type AccountStatus = 'active' | 'paused';
 
 /** The account behind a profile. Auth-related fields will live here. */
@@ -24,6 +25,14 @@ export interface User {
   status: AccountStatus;
   onboardingComplete: boolean;
   profileId: ID;
+  /** Incognito: only people you like can see your profile. */
+  incognito?: boolean;
+}
+
+/** Account-level privacy choices that aren't part of the public profile. */
+export interface PrivacySettings {
+  /** Prototype only: contacts are never uploaded. */
+  hideFromContacts: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -34,6 +43,15 @@ export type Gender = 'woman' | 'man' | 'nonbinary';
 export type Frequency = 'never' | 'rarely' | 'socially' | 'regularly';
 export type ChildrenStatus = 'none' | 'has_children';
 export type WantsChildren = 'wants' | 'open' | 'does_not_want' | 'unsure';
+export type EducationLevel = 'secondary' | 'vocational' | 'undergraduate' | 'postgraduate';
+
+/** Mock verification. Never implies someone is safe. */
+export type VerificationState = 'unverified' | 'pending' | 'verified';
+
+export interface Verification {
+  photo: VerificationState;
+  id: VerificationState;
+}
 
 export interface Photo {
   id: ID;
@@ -98,6 +116,11 @@ export interface Profile {
   updatedAt: ISODateTime;
   /** Last time this person used the app. Feeds the "activity freshness" ranking signal. */
   lastActiveAt?: ISODateTime;
+  /** Highest level of education, used by the education filter. Shown with `education`. */
+  educationLevel?: EducationLevel;
+  verification?: Verification;
+  /** Hide approximate distance from other people. */
+  hideDistance?: boolean;
 }
 
 /* ------------------------------------------------------------------ */
@@ -127,6 +150,9 @@ export interface Preferences {
   children: FilterRule<ChildrenStatus> | null;
   wantsChildren: FilterRule<WantsChildren> | null;
   religion: FilterRule<string> | null;
+  politics?: FilterRule<string> | null;
+  education?: FilterRule<EducationLevel> | null;
+  height?: { minCm: number; maxCm: number; mode: FilterMode } | null;
 }
 
 /* ------------------------------------------------------------------ */
@@ -169,7 +195,7 @@ export interface Match {
   lastReadAt?: Partial<Record<ID, ISODateTime>>;
 }
 
-export type MessageKind = 'text' | 'photo' | 'voice';
+export type MessageKind = 'text' | 'photo' | 'voice' | 'date';
 
 export interface Message {
   id: ID;
@@ -184,6 +210,8 @@ export interface Message {
   photo?: { tone: readonly [string, string] };
   /** Voice-note placeholder (no audio yet). */
   voice?: { durationSec: number };
+  /** A shared date card ("date" messages). */
+  dateId?: ID;
 }
 
 /* ------------------------------------------------------------------ */
@@ -237,4 +265,75 @@ export interface DailyPicks {
   exploreOpened: boolean;
   /** The single pass that can still be undone (one step only). Cleared by any other action. */
   undoablePassId?: ID | null;
+}
+
+/* ------------------------------------------------------------------ */
+/* Safety                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface Block {
+  id: ID;
+  blockerId: ID;
+  blockedUserId: ID;
+  createdAt: ISODateTime;
+}
+
+export const REPORT_CATEGORIES = [
+  'fake_profile',
+  'harassment',
+  'sexual_content',
+  'hate_or_threats',
+  'underage',
+  'spam_scam',
+  'privacy_concern',
+  'other',
+] as const;
+export type ReportCategory = (typeof REPORT_CATEGORIES)[number];
+
+/** Reports are private. The reported person is never told who reported them. */
+export interface Report {
+  id: ID;
+  reporterId: ID;
+  reportedUserId: ID;
+  category: ReportCategory;
+  details?: string;
+  alsoBlocked: boolean;
+  createdAt: ISODateTime;
+  status: 'received';
+}
+
+/* ------------------------------------------------------------------ */
+/* Dates                                                               */
+/* ------------------------------------------------------------------ */
+
+export type DatePlanStatus = 'proposed' | 'accepted' | 'changed' | 'cancelled';
+
+export interface DatePlan {
+  id: ID;
+  matchId: ID;
+  proposedBy: ID;
+  /** Local date YYYY-MM-DD and time HH:mm. */
+  date: string;
+  time: string;
+  venue?: string;
+  note?: string;
+  status: DatePlanStatus;
+  /** The plan this one replaced via "Suggest change". */
+  replaces?: ID;
+  createdAt: ISODateTime;
+  respondedAt?: ISODateTime;
+}
+
+export type DateOutcome = 'see_again' | 'not_sure' | 'not_a_match' | 'did_not_go';
+
+/** Private post-date feedback. Never shown to the other person; feeds recommendations later. */
+export interface DateFeedback {
+  id: ID;
+  dateId: ID;
+  matchId: ID;
+  aboutUserId: ID;
+  outcome: DateOutcome;
+  worked?: string;
+  didnt?: string;
+  createdAt: ISODateTime;
 }

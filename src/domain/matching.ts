@@ -120,5 +120,6 @@ export function messagePreview(m: Message, viewerId: ID): string {
   const prefix = m.senderId === viewerId ? 'You: ' : '';
   if (m.kind === 'photo') return `${prefix}Photo`;
   if (m.kind === 'voice') return `${prefix}Voice note`;
+  if (m.kind === 'date') return `${prefix}Date suggestion`;
   return `${prefix}${m.body}`;
 }

@@ -3,6 +3,7 @@ import { findCityByName, getCity, toApproxLocation } from '../domain/cities';
 import type {
   ChildrenStatus,
   DatingIntent,
+  EducationLevel,
   FieldVisibility,
   FilterMode,
   FilterRule,
@@ -37,6 +38,7 @@ export interface ProfileDraft {
   heightCm: number | null;
   job: string;
   education: string;
+  educationLevel: EducationLevel | null;
   religion: string;
   politics: string;
   smoking: Frequency | null;
@@ -89,6 +91,7 @@ export function createEmptyDraft(): ProfileDraft {
     heightCm: null,
     job: '',
     education: '',
+    educationLevel: null,
     religion: '',
     politics: '',
     smoking: null,
@@ -151,6 +154,10 @@ export function draftToProfile(draft: ProfileDraft, existing?: Profile | null): 
     heightCm: draft.heightCm ?? undefined,
     job: trimOrUndefined(draft.job),
     education: trimOrUndefined(draft.education),
+    educationLevel: draft.educationLevel ?? undefined,
+    // Account-managed fields are kept as they are when editing.
+    verification: existing?.verification ?? { photo: 'unverified', id: 'unverified' },
+    hideDistance: existing?.hideDistance,
     religion: trimOrUndefined(draft.religion),
     politics: trimOrUndefined(draft.politics),
     smoking: draft.smoking ?? 'never',
@@ -181,6 +188,10 @@ export function draftToPreferences(draft: ProfileDraft, existing?: Preferences |
     children: draft.filters.children,
     wantsChildren: draft.filters.wantsChildren,
     religion: draft.filters.religion,
+    // Filters only set from Settings → Filters are preserved.
+    politics: existing?.politics ?? null,
+    education: existing?.education ?? null,
+    height: existing?.height ?? null,
   };
 }
 
@@ -196,6 +207,7 @@ export function profileToDraft(profile: Profile, preferences: Preferences | null
     heightCm: profile.heightCm ?? null,
     job: profile.job ?? '',
     education: profile.education ?? '',
+    educationLevel: profile.educationLevel ?? null,
     religion: profile.religion ?? '',
     politics: profile.politics ?? '',
     smoking: profile.smoking,

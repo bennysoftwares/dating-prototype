@@ -1,0 +1,18 @@
+.safety { display: flex; flex-direction: column; gap: var(--space-3); }
+.safety__group {
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-text-subtle);
+}
+.safety__note { display: flex; gap: var(--space-2); align-items: flex-start; font-size: var(--text-sm); color: var(--color-text-muted); }
+.safety__note svg { flex: none; margin-top: 2px; }
+.safety__error { font-size: var(--text-sm); color: var(--color-danger); }
+.safety__summary { font-weight: var(--weight-semibold); }
+.safety__switch { border-top: 1px solid var(--color-border); }
+.safety__copy { display: flex; flex-direction: column; gap: var(--space-3); color: var(--color-text-muted); }
+.safety__copy .btn { align-self: flex-start; }
+.safety__done { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-3); padding: var(--space-4) 0; }
+.safety__done-icon { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--color-success-soft); color: var(--color-success); }

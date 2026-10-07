@@ -26,6 +26,11 @@ export function ProfileHeroCard({ profile, distanceLabel, as: Tag = 'article', r
           <h2 className="hero-card__name">
             {profile.firstName}
             <span className="hero-card__age">{age}</span>
+            {profile.verification?.photo === 'verified' && (
+              <span className="hero-card__verified" title="Photo verified">
+                <Icon name="verified" size={22} label="Photo verified" />
+              </span>
+            )}
           </h2>
           <p className="hero-card__meta">
             <Icon name="pin" size={16} />

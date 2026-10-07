@@ -1,5 +1,5 @@
-import { createDemoPreferences, createDemoProfile, createMockConnections, createSeed } from '../../data/mock';
-import type { DailyPicks, Like, Match, Message, Pass, Preferences, Profile, User } from '../../domain/types';
+import { createDemoPreferences, createDemoProfile, createMockConnections, createMockDates, createSeed } from '../../data/mock';
+import type { Block, DailyPicks, DateFeedback, DatePlan, Like, Match, Message, Pass, Preferences, PrivacySettings, Profile, Report, User } from '../../domain/types';
 import { storage } from '../../storage/storage';
 import { STORAGE_KEYS } from '../../storage/keys';
 import { sleep } from '../../utils/sleep';
@@ -11,8 +11,9 @@ import { sleep } from '../../utils/sleep';
  * v2: onboarding. New accounts start un-onboarded; own profile id is "p-me".
  * v3: discovery. ~28 mock profiles with activity data; likes, passes, daily picks.
  * v4: matching & messaging. Received likes, match contexts, read markers, drafts.
+ * v5: safety, privacy, verification, dates. Blocks, reports, date plans, private feedback.
  */
-export const DB_SCHEMA_VERSION = 4;
+export const DB_SCHEMA_VERSION = 5;
 
 interface DbMeta {
   schemaVersion: number;
@@ -28,8 +29,41 @@ export const localDb = {
   ensureSeeded(): void {
     const meta = storage.get<DbMeta | null>(K.dbMeta.key, null);
     if (meta?.schemaVersion === DB_SCHEMA_VERSION && this.user()) return;
+    if (meta?.schemaVersion === 4 && this.user()) return this.migrateFromV4();
     if ((meta?.schemaVersion === 2 || meta?.schemaVersion === 3) && this.user()) return this.migrate(meta.schemaVersion);
     this.reset();
+  },
+
+  /** v4 → v5: keep everything the user did; refresh mock people so they gain Part 5 fields. */
+  migrateFromV4(): void {
+    const seed = createSeed();
+    const user = this.user()!;
+    const own = this.profiles().find((p) => p.userId === user.id);
+    storage.set(K.dbProfiles.key, own ? [own, ...seed.profiles] : seed.profiles, K.dbProfiles.version);
+    this.resetSafetyAndDates();
+    storage.set<DbMeta>(K.dbMeta.key, { schemaVersion: DB_SCHEMA_VERSION, seededAt: new Date().toISOString() });
+  },
+
+  /** Clear blocks, reports, dates, feedback and privacy settings. */
+  resetSafetyAndDates(): void {
+    storage.set(K.dbBlocks.key, [], K.dbBlocks.version);
+    storage.set(K.dbReports.key, [], K.dbReports.version);
+    storage.set(K.dbDateFeedback.key, [], K.dbDateFeedback.version);
+    storage.set(K.dbPrivacy.key, { hideFromContacts: false }, K.dbPrivacy.version);
+    const user = this.user();
+    const own = user && this.profiles().find((p) => p.id === user.profileId);
+    const dates = user && own ? createMockDates(this.matches(), user.id) : [];
+    storage.set(K.dbDates.key, dates, K.dbDates.version);
+    // Each date plan appears in the chat as a shared date card.
+    const others = this.messages().filter((m) => m.kind !== 'date');
+    const cards: Message[] = dates.map((d) => ({ id: `msg-${d.id}`, matchId: d.matchId, senderId: d.proposedBy, kind: 'date', body: '', dateId: d.id, sentAt: d.createdAt }));
+    this.writeMessages([...others, ...cards].sort((a, b) => a.sentAt.localeCompare(b.sentAt)));
+    if (cards.length) {
+      this.writeMatches(this.matches().map((m) => {
+        const card = cards.find((c) => c.matchId === m.id);
+        return card && card.sentAt > m.lastActivityAt ? { ...m, lastActivityAt: card.sentAt } : m;
+      }));
+    }
   },
 
   /**
@@ -44,6 +78,7 @@ export const localDb = {
     if (from < 3) this.resetDiscovery();
     else this.writeLikes(this.likes().filter((l) => l.fromUserId === user.id));
     this.resetConnections();
+    this.resetSafetyAndDates();
     storage.set<DbMeta>(K.dbMeta.key, { schemaVersion: DB_SCHEMA_VERSION, seededAt: new Date().toISOString() });
   },
 
@@ -88,6 +123,7 @@ export const localDb = {
     storage.set(K.dbMatches.key, seed.matches, K.dbMatches.version);
     storage.set(K.dbMessages.key, seed.messages, K.dbMessages.version);
     this.resetDiscovery();
+    this.resetSafetyAndDates();
     storage.remove(K.drafts.key);
     storage.remove(K.onboardingDraft.key);
     storage.remove(K.onboardingPhotos.key);
@@ -104,6 +140,7 @@ export const localDb = {
     this.writeUser({ ...this.user()!, onboardingComplete: true });
     this.resetDiscovery();
     this.resetConnections();
+    this.resetSafetyAndDates();
     storage.remove(K.onboardingDraft.key);
     storage.remove(K.onboardingPhotos.key);
   },
@@ -117,6 +154,7 @@ export const localDb = {
     storage.set(K.dbPreferences.key, null, K.dbPreferences.version);
     this.resetDiscovery();
     this.resetConnections();
+    this.resetSafetyAndDates();
     storage.remove(K.onboardingDraft.key);
     storage.remove(K.onboardingPhotos.key);
   },
@@ -150,6 +188,41 @@ export const localDb = {
     return storage.get<DailyPicks | null>(K.dbDailyPicks.key, null, {
       validate: (v): v is DailyPicks | null => v === null || (isObject(v) && Array.isArray((v as DailyPicks).profileIds)),
     });
+  },
+  blocks(): Block[] {
+    return storage.get<Block[]>(K.dbBlocks.key, [], { validate: (v): v is Block[] => isArray(v) });
+  },
+  reports(): Report[] {
+    return storage.get<Report[]>(K.dbReports.key, [], { validate: (v): v is Report[] => isArray(v) });
+  },
+  dates(): DatePlan[] {
+    return storage.get<DatePlan[]>(K.dbDates.key, [], { validate: (v): v is DatePlan[] => isArray(v) });
+  },
+  dateFeedback(): DateFeedback[] {
+    return storage.get<DateFeedback[]>(K.dbDateFeedback.key, [], { validate: (v): v is DateFeedback[] => isArray(v) });
+  },
+  privacy(): PrivacySettings {
+    return storage.get<PrivacySettings>(K.dbPrivacy.key, { hideFromContacts: false }, { validate: (v): v is PrivacySettings => isObject(v) });
+  },
+  /** User ids the current user has blocked. Blocked people disappear everywhere. */
+  blockedUserIds(): Set<string> {
+    const me = this.user()?.id;
+    return new Set(this.blocks().filter((b) => b.blockerId === me).map((b) => b.blockedUserId));
+  },
+  writeBlocks(blocks: Block[]): boolean {
+    return storage.set(K.dbBlocks.key, blocks, K.dbBlocks.version);
+  },
+  writeReports(reports: Report[]): boolean {
+    return storage.set(K.dbReports.key, reports, K.dbReports.version);
+  },
+  writeDates(dates: DatePlan[]): boolean {
+    return storage.set(K.dbDates.key, dates, K.dbDates.version);
+  },
+  writeDateFeedback(feedback: DateFeedback[]): boolean {
+    return storage.set(K.dbDateFeedback.key, feedback, K.dbDateFeedback.version);
+  },
+  writePrivacy(privacy: PrivacySettings): boolean {
+    return storage.set(K.dbPrivacy.key, privacy, K.dbPrivacy.version);
   },
   writeMatches(matches: Match[]): boolean {
     return storage.set(K.dbMatches.key, matches, K.dbMatches.version);

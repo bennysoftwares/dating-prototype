@@ -70,6 +70,7 @@ export function buildReasons(viewer: Profile, candidate: Profile, compatibility:
   if (viewer.smoking === 'never' && visibleSmoking(candidate) === 'never') reasons.push('Neither of you smokes');
   if (viewer.wantsChildren === 'wants' && visibleWantsChildren(candidate) === 'wants') reasons.push('You both want children');
 
-  reasons.push(`${distanceKm} km away`);
+  // People who hide their distance never get a distance line.
+  if (!candidate.hideDistance) reasons.push(`${distanceKm} km away`);
   return reasons;
 }
