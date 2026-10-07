@@ -1,0 +1,13 @@
+.likes__tip { display: flex; gap: var(--space-4); align-items: flex-start; }
+.likes__tip-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-soft-text);
+}
+.likes__tip-title { font-size: var(--text-md); font-weight: var(--weight-semibold); margin-bottom: 2px; }
+.likes__tip-body { font-size: var(--text-sm); color: var(--color-text-muted); }
