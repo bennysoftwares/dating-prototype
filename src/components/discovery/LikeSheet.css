@@ -1,0 +1,15 @@
+.like-sheet { display: flex; flex-direction: column; gap: var(--space-4); }
+.like-sheet__photo { width: 140px; align-self: center; }
+.like-sheet__prompt {
+  margin: 0;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.like-sheet__prompt figcaption { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-text-muted); }
+.like-sheet__prompt blockquote { margin: 0; font-family: var(--font-display); font-size: var(--text-lg); line-height: var(--leading-snug); }
+.like-sheet__tip { font-size: var(--text-sm); color: var(--color-text-muted); }
+.like-sheet__error { font-size: var(--text-sm); color: var(--color-danger); text-align: center; }

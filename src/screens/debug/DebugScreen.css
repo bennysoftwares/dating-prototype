@@ -25,3 +25,15 @@
 .debug__empty { padding: var(--space-4); color: var(--color-text-muted); font-size: var(--text-sm); }
 .debug__actions { display: flex; flex-direction: column; gap: var(--space-2); }
 .debug .screen__body { padding-bottom: calc(var(--space-12) + var(--safe-bottom)); }
+.debug__rec summary { min-height: 56px; }
+.debug__rec-name { display: flex; flex-direction: column; gap: 2px; }
+.debug__rec-name small { color: var(--color-text-subtle); font-size: var(--text-xs); }
+.debug__score { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: var(--text-sm) !important; color: var(--color-text) !important; font-weight: var(--weight-semibold); }
+.debug__score--out { color: var(--color-danger) !important; }
+.debug__rec-body { padding: var(--space-3) var(--space-4) var(--space-4); background: var(--color-surface-sunken); font-size: var(--text-xs); display: flex; flex-direction: column; gap: var(--space-2); }
+.debug__rec-body h4 { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-subtle); margin-top: var(--space-2); }
+.debug__rec-body table { border-collapse: collapse; width: 100%; }
+.debug__rec-body th, .debug__rec-body td { text-align: left; padding: 3px 6px 3px 0; vertical-align: top; font-weight: var(--weight-regular); }
+.debug__rec-body td:nth-child(2) { white-space: nowrap; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.debug__rec-body ul { margin: 0; padding-left: var(--space-4); display: grid; gap: 2px; }
+.debug__fail { color: var(--color-danger); }

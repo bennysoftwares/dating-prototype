@@ -48,3 +48,4 @@
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
 }
+.hero-card--has-action .hero-card__info { padding-right: calc(var(--space-6) + 56px); }

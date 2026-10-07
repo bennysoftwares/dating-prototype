@@ -19,6 +19,7 @@ export const ROUTES = {
   likes: '/likes',
   matches: '/matches',
   profile: '/profile',
+  discoverProfile: (profileId: string) => `/discover/${profileId}`,
   profileEdit: '/profile/edit',
   profileEditStep: (stepId: string) => `/profile/edit/${stepId}`,
   profilePreview: '/profile/preview',

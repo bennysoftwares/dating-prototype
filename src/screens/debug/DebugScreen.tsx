@@ -10,6 +10,7 @@ import { DB_SCHEMA_VERSION, localDb } from '../../repositories/local/localDb';
 import { STORAGE_KEYS } from '../../storage/keys';
 import { storage } from '../../storage/storage';
 import { useTheme, type ThemePreference } from '../../theme/ThemeProvider';
+import { DebugRecommendations } from './DebugRecommendations';
 import { SafeAreaReadout } from './SafeAreaReadout';
 import './DebugScreen.css';
 
@@ -21,6 +22,7 @@ export function DebugScreen() {
   const navigate = useNavigate();
   const { preference, resolved, setPreference } = useTheme();
   const [keys, setKeys] = useState(() => storage.keys());
+  const [recVersion, setRecVersion] = useState(0);
 
   useEffect(() => storage.subscribe(() => setKeys(storage.keys())), []);
 
@@ -95,6 +97,14 @@ export function DebugScreen() {
           <Button variant="secondary" icon="refresh" onClick={restartOnboarding} block>Restart onboarding (blank)</Button>
           <Button variant="secondary" icon="edit" onClick={prefillDraft} block>Prefill onboarding with Alex</Button>
         </div>
+      </Section>
+
+      <Section title="Recommendations" description="Scores are for development only. People never see numbers.">
+        <div className="debug__actions">
+          <Button variant="secondary" icon="refresh" onClick={() => { localDb.writeDailyPicks(null); setRecVersion((v) => v + 1); }} block>Regenerate today's picks</Button>
+          <Button variant="secondary" icon="undo" onClick={() => { localDb.resetDiscovery(); setRecVersion((v) => v + 1); }} block>Reset likes, passes and picks</Button>
+        </div>
+        <DebugRecommendations version={recVersion} />
       </Section>
 
       <Section title="Theme" description={`Resolved: ${resolved}`}>

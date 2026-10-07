@@ -1,74 +1,122 @@
+import { useEffect } from 'react';
+import { useNavigate } from 'react-router';
+import { ROUTES } from '../../app/navigation';
+import { PickCard } from '../../components/discovery/PickCard';
 import { Screen, Section } from '../../components/layout';
-import { ProfileHeroCard } from '../../components/profile/ProfileHeroCard';
-import { PromptCard } from '../../components/profile/PromptCard';
-import { Avatar, EmptyState, ErrorState, LoadingRegion, Skeleton } from '../../components/ui';
-import { useAsync } from '../../hooks/useAsync';
-import { useRepositories } from '../../repositories/RepositoryContext';
-import { approxDistanceKm } from '../../utils/profileFormat';
+import { Button, EmptyState, ErrorState, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
+import { useDiscovery } from '../../discovery/DiscoveryProvider';
+import { useScrollRestoration } from '../../hooks/useScrollRestoration';
 import './DiscoverScreen.css';
 
 /**
- * Placeholder for Today's Picks. Shows the visual direction (large lead photo,
- * intention up front, a prompt) using mock data. Ranking and interactions come in Part 3.
+ * Today's picks: a small curated set with reasons, then an optional, secondary
+ * Explore more. Decisions happen inside each full profile, not on the card.
  */
 export function DiscoverScreen() {
-  const { users, profiles } = useRepositories();
-  const state = useAsync(async () => {
-    const user = await users.getCurrentUser();
-    const [me, candidates] = await Promise.all([profiles.getProfile(user.profileId), profiles.listCandidates()]);
-    return { me, candidates };
-  }, [users, profiles]);
+  const navigate = useNavigate();
+  const toast = useToast();
+  const { status, error, view, refresh, undoPass, openExplore } = useDiscovery();
+
+  // Re-rank quietly whenever Discover is shown (e.g. after editing preferences).
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useScrollRestoration('discover', status === 'ready');
 
   const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  const profileLink = (id: string) => ROUTES.discoverProfile(id);
+
+  const onUndo = async () => {
+    const restored = await undoPass();
+    if (restored) toast({ message: `${restored.profile.firstName} is back in your picks` });
+  };
+
+  const undoAction = view?.undoablePass && (
+    <IconButton icon="undo" label={`Undo last pass${view.undoablePass.candidate ? ` (${view.undoablePass.candidate.profile.firstName})` : ''}`} onClick={() => void onUndo()} />
+  );
 
   return (
-    <Screen title="Today's picks" eyebrow={today}>
-      {state.status === 'loading' && (
+    <Screen title="Today's picks" eyebrow={today} actions={undoAction}>
+      {status === 'loading' && (
         <LoadingRegion label="Loading today's picks">
           <div className="discover__loading">
-            <Skeleton ratio="4 / 5" className="discover__hero-skeleton" />
-            <Skeleton height={120} />
+            <Skeleton height={20} className="discover__line-skeleton" />
+            <Skeleton ratio="5 / 6" className="discover__hero-skeleton" />
           </div>
         </LoadingRegion>
       )}
 
-      {state.status === 'error' && <ErrorState onRetry={state.retry} />}
+      {status === 'error' && <ErrorState message={error?.message} onRetry={() => void refresh()} />}
 
-      {state.status === 'success' && state.data.candidates.length === 0 && (
-        <EmptyState icon="sparkle" title="That's everyone for today">
-          We'll have new people for you soon.
+      {status === 'ready' && view && view.dailyTotal === 0 && view.explore.length === 0 && (
+        <EmptyState
+          icon="discover"
+          title="No one fits your dealbreakers right now"
+          action={<Button variant="secondary" onClick={() => navigate(ROUTES.profileEditStep('dealbreakers'))}>Review your preferences</Button>}
+        >
+          New people join every day. Loosening a dealbreaker or your distance will show more people.
         </EmptyState>
       )}
 
-      {state.status === 'success' && state.data.candidates.length > 0 && (() => {
-        const { me, candidates } = state.data;
-        const [first, ...rest] = candidates;
-        if (!first) return null;
-        const distance = me ? `${approxDistanceKm(me.location, first.location)} km away` : undefined;
-        return (
-          <>
-            <p className="discover__intro">
-              {candidates.length} people selected around what you're looking for. Take your time with each one.
+      {status === 'ready' && view && view.dailyTotal > 0 && (
+        <>
+          <div className="discover__intro">
+            <p>
+              {view.dailyTotal} {view.dailyTotal === 1 ? 'person' : 'people'} selected around your preferences
             </p>
-            <div className="discover__lead">
-              <ProfileHeroCard profile={first} distanceLabel={distance} />
-              {first.prompts[0] && <PromptCard prompt={first.prompts[0]} />}
+            <div className="discover__progress" aria-label={`${view.dailySeen} of ${view.dailyTotal} seen`} role="img">
+              {Array.from({ length: view.dailyTotal }, (_, i) => (
+                <span key={i} className={i < view.dailySeen ? 'is-seen' : undefined} />
+              ))}
             </div>
-            {rest.length > 0 && (
-              <Section title="Also in today's picks">
-                <ul className="discover__strip" role="list">
-                  {rest.map((p) => (
-                    <li key={p.id} className="discover__strip-item">
-                      <Avatar photo={p.photos[0]} name={p.firstName} size={64} />
-                      <span>{p.firstName}</span>
-                    </li>
-                  ))}
-                </ul>
-              </Section>
-            )}
-          </>
-        );
-      })()}
+          </div>
+
+          {view.picks.length > 0 ? (
+            <ul className="discover__list" role="list" aria-label="Today's picks">
+              {view.picks.map((c) => (
+                <li key={c.profile.id}>
+                  <PickCard candidate={c} to={profileLink(c.profile.id)} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <EmptyState
+              icon="sparkle"
+              title="That's everyone in today's recommendations"
+              action={
+                !view.exploreOpened && view.explore.length > 0 ? (
+                  <Button variant="secondary" onClick={() => void openExplore()}>Explore more</Button>
+                ) : undefined
+              }
+            >
+              We'll have more for you soon.
+            </EmptyState>
+          )}
+        </>
+      )}
+
+      {status === 'ready' && view && view.dailyTotal === 0 && view.explore.length > 0 && !view.exploreOpened && (
+        <EmptyState icon="sparkle" title="That's everyone in today's recommendations" action={<Button variant="secondary" onClick={() => void openExplore()}>Explore more</Button>}>
+          We'll have more for you soon.
+        </EmptyState>
+      )}
+
+      {status === 'ready' && view?.exploreOpened && (
+        <Section title="Explore more" description="A few more people who fit your dealbreakers, a little further from your preferences.">
+          {view.explore.length > 0 ? (
+            <ul className="discover__list" role="list" aria-label="Explore more">
+              {view.explore.map((c) => (
+                <li key={c.profile.id}>
+                  <PickCard candidate={c} to={profileLink(c.profile.id)} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="discover__done">You've seen everyone for now. New people join every day.</p>
+          )}
+        </Section>
+      )}
     </Screen>
   );
 }

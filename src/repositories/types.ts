@@ -1,4 +1,4 @@
-import type { ID, Match, Message, Preferences, Profile, User } from '../domain/types';
+import type { DailyPicks, ID, Like, LikeTarget, Match, Message, Pass, Preferences, Profile, User } from '../domain/types';
 
 /**
  * Repository contracts used by the UI. The prototype implements them with
@@ -33,10 +33,30 @@ export interface MatchRepository {
   listMessages(matchId: ID): Promise<Message[]>;
 }
 
+export interface DiscoveryState {
+  likes: Like[];
+  passes: Pass[];
+  dailyPicks: DailyPicks | null;
+}
+
+/**
+ * Likes, passes and the daily curated set. Ranking itself lives in
+ * `src/recommendation` (pure functions) and would move server-side later.
+ */
+export interface DiscoveryRepository {
+  getState(): Promise<DiscoveryState>;
+  sendLike(input: { toProfileId: ID; toUserId: ID; target: LikeTarget; comment?: string }): Promise<Like>;
+  pass(toProfileId: ID): Promise<Pass>;
+  /** Remove a pass so the person can be seen again (one-step undo). */
+  undoPass(passId: ID): Promise<void>;
+  saveDailyPicks(daily: DailyPicks): Promise<DailyPicks>;
+}
+
 export interface Repositories {
   users: UserRepository;
   profiles: ProfileRepository;
   matches: MatchRepository;
+  discovery: DiscoveryRepository;
 }
 
 /** Thrown when a write could not be persisted (e.g. device storage is full). */

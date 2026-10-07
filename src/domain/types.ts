@@ -96,6 +96,8 @@ export interface Profile {
   bio?: string;
   visibility: FieldVisibility;
   updatedAt: ISODateTime;
+  /** Last time this person used the app. Feeds the "activity freshness" ranking signal. */
+  lastActiveAt?: ISODateTime;
 }
 
 /* ------------------------------------------------------------------ */
@@ -153,4 +155,45 @@ export interface Message {
   kind: MessageKind;
   body: string;
   sentAt: ISODateTime;
+}
+
+/* ------------------------------------------------------------------ */
+/* Discovery: likes, passes, daily picks                               */
+/* ------------------------------------------------------------------ */
+
+/** What a like is attached to. Contextual likes (photo / prompt) are encouraged. */
+export type LikeTarget =
+  | { kind: 'profile' }
+  | { kind: 'photo'; photoId: ID }
+  | { kind: 'prompt'; promptId: ID };
+
+export interface Like {
+  id: ID;
+  fromUserId: ID;
+  toUserId: ID;
+  toProfileId: ID;
+  target: LikeTarget;
+  /** Optional message sent with the like. */
+  comment?: string;
+  createdAt: ISODateTime;
+}
+
+export interface Pass {
+  id: ID;
+  fromUserId: ID;
+  toProfileId: ID;
+  createdAt: ISODateTime;
+}
+
+/** The curated set for one calendar day. Fixed for the day so it never reshuffles. */
+export interface DailyPicks {
+  /** Local calendar date, YYYY-MM-DD. */
+  date: string;
+  profileIds: ID[];
+  /** Changes when preferences change, so the set can be refreshed fairly. */
+  fingerprint: string;
+  /** Explore more opened for this day. */
+  exploreOpened: boolean;
+  /** The single pass that can still be undone (one step only). Cleared by any other action. */
+  undoablePassId?: ID | null;
 }
