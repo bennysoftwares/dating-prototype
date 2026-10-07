@@ -65,7 +65,7 @@ export function SettingsScreen() {
     <Screen title="Settings" leading={<IconButton icon="chevronLeft" label="Back to profile" onClick={() => navigate(ROUTES.profile)} />}>
       <Section title="Account">
         <ListGroup label="Account">
-          <ListRow icon="user" title="Profile status" subtitle={paused ? 'Paused · hidden from Discover' : incognito ? 'Active · Incognito' : 'Active'} to={ROUTES.privacy} chevron />
+          <ListRow icon="user" title="Profile status" subtitle={paused ? 'Paused · hidden from Explore' : incognito ? 'Active · Incognito' : 'Active'} to={ROUTES.privacy} chevron />
           <ListRow icon="verified" title="Verification" subtitle={verifiedLabel} to={ROUTES.verification} chevron />
           <ListRow icon="sparkle" title="Plan" subtitle={plan === 'premium' ? 'Premium' : 'Free'} onClick={() => setPlanOpen(true)} chevron />
           <ListRow icon="edit" title="Edit profile" to={ROUTES.profileEdit} chevron />
@@ -74,7 +74,7 @@ export function SettingsScreen() {
 
       <Section title="Dating">
         <ListGroup label="Dating">
-          <ListRow icon="filter" title="Filters & dealbreakers" subtitle="Age, distance, intention and more" to={ROUTES.filters} chevron />
+          <ListRow icon="sliders" title="Discovery settings" subtitle="Distance, age, goals, filters and dealbreakers" to={ROUTES.filters} chevron />
         </ListGroup>
       </Section>
 

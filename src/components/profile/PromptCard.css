@@ -1,22 +1,32 @@
 .prompt-card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-6) var(--space-5);
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-4) var(--space-4) var(--space-5);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+.prompt-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-2); min-height: 44px; }
+.prompt-card__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-icon-circle);
+  color: var(--color-accent-bright);
 }
 .prompt-card__prompt {
-  font-size: var(--text-sm);
-  font-weight: var(--weight-semibold);
-  color: var(--color-text-muted);
-}
-.prompt-card__answer {
   font-family: var(--font-display);
   font-size: var(--text-xl);
-  font-weight: var(--weight-regular);
-  line-height: var(--leading-snug);
+  font-weight: var(--weight-medium);
+  line-height: 1.15;
   letter-spacing: -0.01em;
+  color: var(--color-text);
 }
-.prompt-card__action { display: flex; justify-content: flex-end; margin-top: calc(var(--space-2) * -1); }
+.prompt-card__answer { margin: 0; font-size: var(--text-md); line-height: var(--leading-normal); color: var(--color-text-muted); }
+.prompt-card__action { flex: none; margin: -2px -4px 0 0; }
+.prompt-card__action .like-btn { width: 44px; height: 44px; }

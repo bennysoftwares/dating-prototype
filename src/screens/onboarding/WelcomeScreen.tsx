@@ -1,8 +1,7 @@
 import { useNavigate } from 'react-router';
-import { ONBOARDING_ROUTES, ROUTES } from '../../app/navigation';
-import { LogoMark } from '../../components/brand/Logo';
+import { ONBOARDING_ROUTES } from '../../app/navigation';
+import { Logo } from '../../components/brand/Logo';
 import { Button } from '../../components/ui';
-import { brand } from '../../config/brand';
 import { useOnboardingDraft } from '../../onboarding/useOnboardingDraft';
 import { localDb } from '../../repositories/local/localDb';
 import { useSession } from '../../session/SessionProvider';
@@ -19,10 +18,10 @@ export function WelcomeScreen() {
   const resume = () => navigate(ONBOARDING_ROUTES.step(resumeStep?.id ?? STEPS[0]!.id));
 
   // Prototype convenience: skip onboarding with the preconfigured demo profile.
+  // Once the session refreshes, the guest gate sends the now-onboarded user to Explore.
   const useDemo = async () => {
     localDb.loadDemoUser();
     await refresh();
-    navigate(ROUTES.discover, { replace: true });
   };
 
   return (
@@ -38,12 +37,11 @@ export function WelcomeScreen() {
 
       <div className="welcome__content">
         <div className="welcome__brand">
-          <LogoMark size={36} />
-          <span>{brand.name}</span>
+          <Logo size={34} />
         </div>
-        <h1 className="welcome__title">Fewer people. Better conversations.</h1>
+        <h1 className="welcome__title">Meet someone worth staying for.</h1>
         <p className="welcome__body">
-          A small, considered set of people each day, with enough on their profile to actually start talking.
+          Real photos, real profiles and clear intentions. Swipe through people near you, read what makes them them, and start a conversation that goes somewhere.
         </p>
       </div>
 

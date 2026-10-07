@@ -1,0 +1,34 @@
+.actions {
+  --pass-size: clamp(56px, 15.5vw, 70px);
+  --like-size: clamp(62px, 17.5vw, 78px);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: clamp(14px, 2.6vh, 24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(32px, 11vw, 60px);
+  pointer-events: none;
+}
+.actions__btn {
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 6px 18px rgba(20, 12, 8, 0.28);
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.actions__btn:active { transform: scale(0.92); }
+.actions__btn:focus-visible { outline: 3px solid var(--color-on-photo); outline-offset: 3px; border-radius: 50%; }
+.actions__btn--pass { width: var(--pass-size); height: var(--pass-size); background: var(--color-action-pass-bg); color: var(--color-pass); }
+.actions__btn--like {
+  width: var(--like-size);
+  height: var(--like-size);
+  background: radial-gradient(circle at 35% 30%, #fbe6dc, var(--color-action-like-bg) 70%);
+  color: var(--color-like);
+}
+@media (hover: hover) {
+  .actions__btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(20, 12, 8, 0.32); }
+}

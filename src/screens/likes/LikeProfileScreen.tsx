@@ -11,7 +11,7 @@ import { buildCompatibility } from '../../recommendation/compatibility';
 import { approxDistanceKm, distanceLabel } from '../../utils/profileFormat';
 import { useSticky } from '../../hooks/useSticky';
 import { useBack } from '../onboarding/useStepNavigation';
-import '../discover/DiscoverProfileScreen.css';
+import '../explore/ExploreProfileScreen.css';
 import './LikesScreen.css';
 
 /** The full profile of someone who liked you, with what they liked on top and Match / Pass below. */

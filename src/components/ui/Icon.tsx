@@ -158,12 +158,59 @@ const PATHS = {
   ),
   filter: <path d="M4 6h16M7 12h10M10 18h4" />,
   flag: <path d="M5.5 21V4.5M5.5 5c4-2 6.5 2 11 0v8.5c-4.5 2-7-2-11 0" />,
+  cards: (
+    <>
+      <path d="M8.2 18.6 5.9 18a2.3 2.3 0 0 1-1.6-2.8L6.9 5.4a2.3 2.3 0 0 1 2.8-1.6l3.7 1" />
+      <rect x="9.5" y="5.5" width="10" height="14.5" rx="2.4" />
+    </>
+  ),
+  sliders: (
+    <>
+      <path d="M4 7h8.5M17.5 7H20M4 17h2.5M11.5 17H20" />
+      <circle cx="15" cy="7" r="2.5" />
+      <circle cx="9" cy="17" r="2.5" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </>
+  ),
+  quote: <path d="M10 7.5c-3 .7-4.8 3-4.8 6.2v3.8h4.8v-4.8H7.8c.1-1.7.9-2.8 2.4-3.3l-.2-1.9Zm8.8 0c-3 .7-4.8 3-4.8 6.2v3.8h4.8v-4.8h-2.2c.1-1.7.9-2.8 2.4-3.3l-.2-1.9Z" />,
+  graduation: <path d="M3 9.5 12 5l9 4.5-9 4.5-9-4.5ZM7 11.5v4c0 1.5 2.2 2.8 5 2.8s5-1.3 5-2.8v-4M21 9.5v5" />,
+  coffee: <path d="M5 9h11v5a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5V9ZM16 10.5h1.5a2.5 2.5 0 0 1 0 5H16M9 3.5c-.6.8-.6 1.7 0 2.5M12.5 3.5c-.6.8-.6 1.7 0 2.5" />,
+  sprout: <path d="M12 20.5V12M12 12c0-4 3-6.5 7-6.5 0 4-3 6.5-7 6.5ZM12 14.5c0-3-2.3-5-5.5-5 0 3 2.3 5 5.5 5Z" />,
+  target: (
+    <>
+      <circle cx="12" cy="12" r="6.5" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" />
+    </>
+  ),
+  rewind: <path d="M4.8 13a7.3 7.3 0 1 0 2.1-6.1L4.5 9.2M4.5 4.7v4.5H9" />,
+  document: <path d="M7 3.5h7.5L18 7v13.5H7V3.5ZM14.5 3.5V7H18M9.5 11h6M9.5 14h6M9.5 17h4" />,
+  chevronUp: <path d="m6 14.5 6-6 6 6" />,
+  chevronDown: <path d="m6 9.5 6 6 6-6" />,
 } as const;
 
 export type IconName = keyof typeof PATHS;
 
 /** Filled variants where simply filling the outline would lose detail. */
 const FILLED_OVERRIDES: Partial<Record<IconName, JSX.Element>> = {
+  // A solid badge with a cut-out tick.
+  verified: (
+    <>
+      <path d="M12 3 14.2 5 17.2 4.8 17.9 7.7 20.5 9.3 19.4 12 20.5 14.7 17.9 16.3 17.2 19.2 14.2 19 12 21 9.8 19 6.8 19.2 6.1 16.3 3.5 14.7 4.6 12 3.5 9.3 6.1 7.7 6.8 4.8 9.8 5 12 3Z" />
+      <path d="m8.75 12.25 2.25 2.25 4.25-4.5" fill="none" stroke="var(--color-verified-tick, #fff)" strokeWidth={2} />
+    </>
+  ),
+  cards: (
+    <>
+      <path d="M8.2 18.6 5.9 18a2.3 2.3 0 0 1-1.6-2.8L6.9 5.4a2.3 2.3 0 0 1 2.8-1.6l3.7 1" fill="none" />
+      <rect x="9.5" y="5.5" width="10" height="14.5" rx="2.4" />
+    </>
+  ),
   discover: (
     <>
       <circle cx="12" cy="12" r="9.5" fill="currentColor" stroke="none" />

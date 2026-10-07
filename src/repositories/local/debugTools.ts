@@ -79,7 +79,7 @@ export const debugTools = {
       const sent = localDb.likes().filter((l) => l.fromUserId === user.id && !matchedWith.has(l.toUserId));
       const mine = sent[sent.length - 1];
       const them = mine && localDb.profiles().find((p) => p.userId === mine.toUserId);
-      if (!mine || !them) return 'Incognito is on: only people you like can see you. Like someone in Discover first.';
+      if (!mine || !them) return 'Incognito is on: only people you like can see you. Like someone in Explore first.';
       saveMatch(mine, likeFrom(them, me, randomTarget(me), withComment ? pick(COMMENTS) : undefined), user.id);
       return `Incognito: ${them.firstName} could see you because you liked them. It's mutual.`;
     }

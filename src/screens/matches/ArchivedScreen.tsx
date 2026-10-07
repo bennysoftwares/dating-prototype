@@ -14,7 +14,7 @@ export function ArchivedScreen() {
   const archived = conversations.filter((c) => c.state === 'archived');
 
   return (
-    <Screen title="Archived" leading={<IconButton icon="chevronLeft" label="Back to matches" onClick={() => navigate(ROUTES.matches)} />}>
+    <Screen title="Archived" leading={<IconButton icon="chevronLeft" label="Back to matches" onClick={() => navigate(ROUTES.chats)} />}>
       <p className="matches__inactive-note">Archived conversations are hidden from your matches, not deleted. Sending a message moves one back.</p>
       {archived.length === 0 ? (
         <EmptyState icon="archive" title="Nothing archived" />

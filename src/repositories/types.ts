@@ -17,6 +17,7 @@ import type {
   User,
   VerificationState,
 } from '../domain/types';
+import type { RankedCandidate } from '../recommendation';
 
 /**
  * Repository contracts used by the UI. The prototype implements them with
@@ -86,12 +87,28 @@ export interface DiscoveryState {
   dailyPicks: DailyPicks | null;
 }
 
+/** Explore ordering. "standouts" is today's curated set (the daily picks). */
+export type FeedSort = 'for_you' | 'nearby' | 'standouts';
+
+export interface FeedPage {
+  /** Eligible, undecided people, best first for the chosen sort. */
+  items: RankedCandidate[];
+  /** More eligible people remain after this page. False means the pool is exhausted. */
+  hasMore: boolean;
+}
+
 /**
  * Likes, passes and the daily curated set. Ranking itself lives in
  * `src/recommendation` (pure functions) and would move server-side later.
  */
 export interface DiscoveryRepository {
   getState(): Promise<DiscoveryState>;
+  /**
+   * One page of the Explore feed. Hard filters (distance, age, dealbreakers, profile quality)
+   * are applied, and anyone liked, passed, matched or blocked is left out. `exclude` holds the
+   * people the client already has queued, so pages never repeat (keyset-style pagination).
+   */
+  getFeedPage(input: { sort: FeedSort; limit: number; exclude: ID[] }): Promise<FeedPage>;
   /** If they already liked you, this creates a mutual match and returns it. */
   sendLike(input: { toProfileId: ID; toUserId: ID; target: LikeTarget; comment?: string }): Promise<{ like: Like; match: Match | null }>;
   pass(toProfileId: ID): Promise<Pass>;
@@ -104,7 +121,7 @@ export interface DiscoveryRepository {
 
 /** Account state and privacy. */
 export interface AccountRepository {
-  /** Paused: hidden from Discover; matches and chats keep working. */
+  /** Paused: hidden from Explore; matches and chats keep working. */
   setPaused(paused: boolean): Promise<User>;
   /** Incognito: only people you like can see your profile. */
   setIncognito(on: boolean): Promise<User>;
@@ -121,7 +138,7 @@ export interface AccountRepository {
 /** Safety tools are available to everyone. They are never a paid feature. */
 export interface SafetyRepository {
   listBlocks(): Promise<Block[]>;
-  /** Blocked people disappear from Discover, Likes and Matches. They aren't told. */
+  /** Blocked people disappear from Explore, Likes and Chats. They aren't told. */
   block(userId: ID): Promise<Block>;
   unblock(userId: ID): Promise<void>;
   /** The reported person is never told who reported them. */

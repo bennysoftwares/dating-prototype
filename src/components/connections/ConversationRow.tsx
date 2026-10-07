@@ -29,7 +29,7 @@ export function ConversationRow({ convo, viewerId, draft }: ConversationRowProps
   return (
     <Link to={ROUTES.chat(match.id)} className={cx('convo-row', unread > 0 && 'convo-row--unread')}>
       <span className="visually-hidden">{label}. </span>
-      <Avatar photo={other.photos[0]} name={other.firstName} size={56} />
+      <Avatar photo={other.photos[0]} name={other.firstName} size={64} />
       <span className="convo-row__text">
         <span className="convo-row__top">
           <span className="convo-row__name" aria-hidden="true">{other.firstName}</span>
@@ -43,7 +43,7 @@ export function ConversationRow({ convo, viewerId, draft }: ConversationRowProps
           ) : (
             <span className="convo-row__preview">{preview}</span>
           )}
-          {unread > 0 && <span className="convo-row__dot" aria-hidden="true" />}
+          {unread > 0 && <span className="convo-row__count" aria-hidden="true">{unread > 9 ? '9+' : unread}</span>}
         </span>
         {state === 'nudge' && <span className="convo-row__tag">Still interested?</span>}
       </span>

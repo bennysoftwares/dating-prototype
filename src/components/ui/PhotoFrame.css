@@ -35,3 +35,8 @@
   line-height: 1;
 }
 .photo { container-type: inline-size; }
+.photo__scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.photo__art span { position: relative; }
+/* Small frames (avatars, thumbnails): the initial reads better than a scene. */
+@container (min-width: 140px) { .photo__art span { display: none; } }
+@container (max-width: 139.98px) { .photo__scene { display: none; } }

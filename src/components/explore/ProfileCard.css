@@ -1,0 +1,147 @@
+.pcard {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background: #2a201c;
+  color: var(--color-on-photo);
+  box-shadow: var(--shadow-lg);
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.pcard__photo { position: absolute !important; inset: 0; height: 100%; }
+.pcard__photo img { pointer-events: none; -webkit-user-drag: none; }
+.pcard__shade { position: absolute; inset: 0; background: var(--photo-gradient); pointer-events: none; }
+
+/* Photo position: short, centred segments near the top. */
+.pcard__bars {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  display: flex;
+  gap: 5px;
+  width: min(56%, 220px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.pcard__bars span { flex: 1; height: 4px; border-radius: var(--radius-pill); background: rgba(255, 248, 242, 0.42); }
+.pcard__bars span.is-active { background: #fffaf5; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2); }
+
+/* Keyboard and screen-reader photo controls; tapping the photo does the same thing. */
+.pcard__photo-nav { position: absolute; top: 24px; left: 0; right: 0; display: flex; justify-content: space-between; padding: 0 12px; pointer-events: none; }
+.pcard__photo-btn {
+  pointer-events: auto;
+  position: absolute;
+  width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.pcard__photo-btn:focus-visible {
+  position: static;
+  width: auto; height: auto; clip-path: none;
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-photo-badge);
+  color: var(--color-on-photo);
+  font-size: var(--text-sm);
+  outline-color: var(--color-on-photo);
+}
+
+/* Swipe feedback: a soft badge and tint that grow with the drag (--swipe runs -1 … 1). */
+.pcard__feedback {
+  position: absolute;
+  top: clamp(56px, 12%, 96px);
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: scale(calc(0.7 + 0.3 * var(--feedback, 0)));
+  opacity: var(--feedback, 0);
+  box-shadow: var(--shadow-md);
+}
+.pcard__feedback--like { left: 24px; --feedback: clamp(0, calc(var(--swipe, 0) * 1.6), 1); background: var(--color-action-like-bg); color: var(--color-like); }
+.pcard__feedback--pass { right: 24px; --feedback: clamp(0, calc(var(--swipe, 0) * -1.6), 1); background: var(--color-action-pass-bg); color: var(--color-pass); }
+.pcard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(201, 111, 88, 0.3), transparent 70%);
+  opacity: clamp(0, calc(var(--swipe, 0) * 1.2), 1);
+}
+.pcard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(270deg, rgba(32, 25, 22, 0.32), transparent 70%);
+  opacity: clamp(0, calc(var(--swipe, 0) * -1.2), 1);
+}
+
+.pcard__info {
+  position: absolute;
+  left: clamp(16px, 5vw, 24px);
+  right: clamp(16px, 5vw, 24px);
+  bottom: calc(var(--pcard-actions-space, 0px) + clamp(12px, 2.4vh, 20px));
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.2vh, 10px);
+}
+.pcard__title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-3); }
+.pcard__name {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 0.3em;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 9.5vw, 2.75rem);
+  font-weight: var(--weight-medium);
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.25);
+}
+.pcard__age { font-family: var(--font-body); font-size: 0.72em; font-weight: var(--weight-regular); letter-spacing: 0; }
+.pcard__verified { align-self: center; color: var(--color-verified); --color-verified-tick: #fff; }
+.pcard__open {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: 50%;
+  background: var(--color-photo-chip);
+  border: 1px solid var(--color-photo-chip-border);
+  color: var(--color-on-photo);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.pcard__open:focus-visible { outline-color: var(--color-on-photo); }
+.pcard__line { display: flex; gap: var(--space-2); align-items: flex-start; font-size: clamp(1rem, 4.4vw, 1.125rem); line-height: 1.35; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3); }
+.pcard__line span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard__quote { flex: none; margin-top: 2px; color: var(--color-verified); }
+.pcard__chips { display: flex; flex-wrap: wrap; gap: var(--space-2); max-height: 76px; overflow: hidden; }
+.pcard__chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--color-photo-chip);
+  border: 1px solid var(--color-photo-chip-border);
+  font-size: var(--text-sm);
+  line-height: 1.2;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+.pcard__chips li span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pcard__chips svg { flex: none; }
+
+/* Short screens: keep the essentials. */
+@media (max-height: 640px) {
+  .pcard__line { display: none; }
+}

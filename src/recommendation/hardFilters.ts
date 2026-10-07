@@ -42,6 +42,24 @@ function heightCheck(prefs: Preferences, height: number | undefined): HardCheck 
   return { ...base, passed: ok, applied: true, detail: `${height} cm, range ${rule.minCm}–${rule.maxCm} cm` };
 }
 
+/** Verified only, has a bio, minimum photos. Only recorded when switched on. */
+function profileQualityChecks(candidate: Profile, prefs: Preferences): HardCheck[] {
+  const checks: HardCheck[] = [];
+  if (prefs.verifiedOnly) {
+    const verified = candidate.verification?.photo === 'verified';
+    checks.push({ id: 'verified', label: 'Verified profiles only', applied: true, passed: verified, detail: verified ? 'Photo verified' : 'Not photo verified' });
+  }
+  if (prefs.requireBio) {
+    const hasBio = Boolean(candidate.bio?.trim());
+    checks.push({ id: 'bio', label: 'Has a bio', applied: true, passed: hasBio, detail: hasBio ? 'Has a bio' : 'No bio' });
+  }
+  if ((prefs.minPhotos ?? 1) > 1) {
+    const count = candidate.photos.length;
+    checks.push({ id: 'photos', label: 'Minimum photos', applied: true, passed: count >= prefs.minPhotos!, detail: `${count} photos, minimum ${prefs.minPhotos}` });
+  }
+  return checks;
+}
+
 /**
  * Dealbreakers are applied before any scoring. Anyone who fails one is never shown.
  * The hard distance maximum and who-you-want-to-meet are always dealbreakers.
@@ -83,6 +101,7 @@ export function evaluateHardFilters(candidate: Profile, prefs: Preferences, dist
     ruleCheck('politics', 'Politics', prefs.politics ?? null, visiblePolitics(candidate)),
     ruleCheck('education', 'Education', prefs.education ?? null, visibleEducationLevel(candidate), (v) => EDUCATION_LABEL[v] ?? v),
     heightCheck(prefs, visibleHeight(candidate)),
+    ...profileQualityChecks(candidate, prefs),
   ];
 
   return { passed: checks.every((c) => c.passed), checks };

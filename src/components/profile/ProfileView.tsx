@@ -5,7 +5,7 @@ import { LikeButton } from '../discovery/LikeButton';
 import { Chip, ChipList } from '../ui/Chip';
 import { Icon } from '../ui/Icon';
 import { PhotoFrame } from '../ui/PhotoFrame';
-import { ProfileHeroCard } from './ProfileHeroCard';
+import { intentLabel, profileAge } from '../../utils/profileFormat';
 import { PromptCard } from './PromptCard';
 import { basicFacts, interestLabels, lifestyleFacts, type Fact } from './profileFacts';
 import './ProfileView.css';
@@ -27,7 +27,7 @@ const sameTarget = (a: LikeTarget | undefined, b: LikeTarget) =>
 /**
  * The full vertical profile: photos interleaved with prompts and details,
  * closer to a considered Hinge profile than a single swipe card.
- * Used by the onboarding preview, Profile → Preview, and (Part 3) Discover.
+ * Used by the onboarding preview, Profile → Preview, Explore and Standouts.
  */
 export function ProfileView({ profile: p, distanceLabel, compatibility, onLike, likedTarget }: ProfileViewProps) {
   const [photo1, photo2, photo3, ...morePhotos] = p.photos;
@@ -64,23 +64,58 @@ export function ProfileView({ profile: p, distanceLabel, compatibility, onLike, 
     </PhotoFrame>
   );
   const sharedSet = new Set(compatibility?.shared ?? []);
-  const [prompt1, prompt2, prompt3] = p.prompts;
-  const basics = basicFacts(p);
+  const [prompt1, prompt2, prompt3, ...morePrompts] = p.prompts;
+  const leadPrompts = [prompt1, prompt2, prompt3].filter((x): x is PromptAnswer => Boolean(x));
+  const basics: Fact[] = [
+    { key: 'place', icon: 'pin', label: distanceLabel ? `${p.location.city} · ${distanceLabel}` : p.location.city },
+    ...basicFacts(p),
+  ];
   const lifestyle = lifestyleFacts(p);
   const interests = interestLabels(p);
+  const verified = p.verification?.photo === 'verified';
+  const age = profileAge(p);
 
   return (
     <article className="profile-view" aria-label={`${p.firstName}'s profile`}>
-      <ProfileHeroCard profile={p} distanceLabel={distanceLabel} as="div" action={photoLike(photo1)} />
+      <PhotoFrame photo={photo1} ratio="4 / 5" rounded="xl" monogram={monogram} className="profile-view__hero">
+        {p.photos.length > 1 && (
+          <div className="profile-view__dots" aria-hidden="true">
+            {p.photos.map((ph, i) => <span key={ph.id} className={i === 0 ? 'is-active' : undefined} />)}
+          </div>
+        )}
+        {photoLike(photo1)}
+      </PhotoFrame>
 
-      {(basics.length > 0 || p.bio) && (
-        <section className="profile-view__card" aria-label="About">
-          {p.bio && <p className="profile-view__bio">{p.bio}</p>}
-          {basics.length > 0 && <FactList facts={basics} />}
-        </section>
+      <header className="profile-view__intro">
+        <h2 className="profile-view__name">
+          {p.firstName} <span className="profile-view__age">{age}</span>
+          {verified && <Icon name="verified" size={30} filled className="profile-view__verified" label="Photo verified" />}
+        </h2>
+        <p className="profile-view__place">
+          <Icon name="pin" size={18} />
+          {p.location.city}
+          {distanceLabel && <span className="profile-view__distance"> · {distanceLabel}</span>}
+        </p>
+        {p.bio && <p className="profile-view__bio">{p.bio}</p>}
+      </header>
+
+      {leadPrompts.length > 0 && (
+        <div className="profile-view__prompts">
+          {leadPrompts.map((q) => <PromptCard key={q.id} prompt={q} action={promptLike(q)} />)}
+        </div>
       )}
 
-      {prompt1 && <PromptCard prompt={prompt1} action={promptLike(prompt1)} />}
+      <section className="profile-view__card" aria-label="About">
+        <FactList facts={basics} columns />
+        <div className="profile-view__looking">
+          <Icon name="heart" size={22} />
+          <div>
+            <span className="profile-view__looking-label">Looking for</span>
+            <span>{intentLabel(p)}</span>
+          </div>
+        </div>
+      </section>
+
       {photo2 && photoBlock(photo2)}
 
       {interests.length > 0 && (
@@ -99,29 +134,27 @@ export function ProfileView({ profile: p, distanceLabel, compatibility, onLike, 
         </section>
       )}
 
-      {prompt2 && <PromptCard prompt={prompt2} action={promptLike(prompt2)} />}
-
       {lifestyle.length > 0 && (
         <section className="profile-view__card" aria-label="Lifestyle">
           <h3 className="profile-view__heading">Lifestyle</h3>
-          <FactList facts={lifestyle} />
+          <FactList facts={lifestyle} columns />
         </section>
       )}
 
       {photo3 && photoBlock(photo3)}
       {compatibility && <CompatibilitySection compatibility={compatibility} name={p.firstName} />}
-      {prompt3 && <PromptCard prompt={prompt3} action={promptLike(prompt3)} />}
+      {morePrompts.map((q) => <PromptCard key={q.id} prompt={q} action={promptLike(q)} />)}
       {morePhotos.map(photoBlock)}
     </article>
   );
 }
 
-function FactList({ facts }: { facts: Fact[] }) {
+function FactList({ facts, columns }: { facts: Fact[]; columns?: boolean }) {
   return (
-    <ul className="profile-view__facts" role="list">
+    <ul className={columns ? 'profile-view__facts profile-view__facts--columns' : 'profile-view__facts'} role="list">
       {facts.map((f) => (
         <li key={f.key}>
-          <Icon name={f.icon} size={18} />
+          <Icon name={f.icon} size={20} />
           <span>{f.label}</span>
         </li>
       ))}

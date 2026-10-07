@@ -20,13 +20,13 @@ export function MatchCelebrationScreen() {
   }, [convo?.match.id]);
 
   const from = search.get('from');
-  const keepBrowsing = () => navigate(from === 'likes' ? ROUTES.likes : ROUTES.discover, { replace: true });
+  const keepBrowsing = () => navigate(from === 'likes' ? ROUTES.likes : from === 'standouts' ? ROUTES.standouts : ROUTES.explore, { replace: true });
 
   if (status === 'loading') return <div className="celebrate" aria-busy="true" />;
   if (!convo || !viewer) {
     return (
       <div className="celebrate">
-        <EmptyState icon="chat" title="Match not found" action={<Button onClick={() => navigate(ROUTES.matches, { replace: true })}>Go to matches</Button>} />
+        <EmptyState icon="chat" title="Match not found" action={<Button onClick={() => navigate(ROUTES.chats, { replace: true })}>Go to chats</Button>} />
       </div>
     );
   }

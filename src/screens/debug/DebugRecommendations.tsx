@@ -28,7 +28,7 @@ export function DebugRecommendations({ version }: { version: number }) {
       if (passes.some((p) => p.toProfileId === r.profile.id)) return 'Passed';
       if (!r.hard.passed) return 'Excluded by hard filter';
       const i = daily?.profileIds.indexOf(r.profile.id) ?? -1;
-      return i >= 0 ? `Today's pick #${i + 1}` : 'Explore more';
+      return i >= 0 ? `Standout #${i + 1}` : 'Explore';
     };
     return { ranking, statusOf, daily };
   }, [version]);

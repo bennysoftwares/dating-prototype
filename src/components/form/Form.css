@@ -137,7 +137,7 @@
   box-shadow: var(--shadow-knob);
   transition: transform var(--duration-base) var(--ease-out);
 }
-.switch:checked { background: var(--color-accent); }
+.switch:checked { background: var(--color-accent-bright); }
 .switch:checked::after { transform: translateX(20px); }
 .switch:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
 .switch--sm { width: 42px; height: 26px; }
@@ -154,7 +154,7 @@
 }
 .switch-row--compact { padding: var(--space-2) 0; min-height: 48px; }
 .switch-row__text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.switch-row__label { font-weight: var(--weight-medium); }
+.switch-row__label { font-family: var(--font-display); font-size: 1.125rem; font-weight: var(--weight-medium); line-height: 1.25; }
 .switch-row__description { font-size: var(--text-sm); color: var(--color-text-muted); }
 
 .visibility {
@@ -175,8 +175,9 @@
 .range-field__head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-3); }
 .range-field__label { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
 .range-field__value {
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
   letter-spacing: var(--tracking-tight);
   font-variant-numeric: tabular-nums;
 }
@@ -193,10 +194,10 @@
 .range::-webkit-slider-runnable-track {
   height: 6px;
   border-radius: var(--radius-pill);
-  background: linear-gradient(to right, var(--color-accent) var(--range-pct), var(--color-border-strong) var(--range-pct));
+  background: linear-gradient(to right, var(--color-accent-bright) var(--range-pct), var(--color-border-strong) var(--range-pct));
 }
 .range::-moz-range-track { height: 6px; border-radius: var(--radius-pill); background: var(--color-border-strong); }
-.range::-moz-range-progress { height: 6px; border-radius: var(--radius-pill); background: var(--color-accent); }
+.range::-moz-range-progress { height: 6px; border-radius: var(--radius-pill); background: var(--color-accent-bright); }
 .range::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 30px;
@@ -215,3 +216,47 @@
 /* ---------- Mode toggle ---------- */
 .mode-toggle { display: flex; flex-direction: column; gap: var(--space-2); }
 .mode-toggle__copy { font-size: var(--text-sm); color: var(--color-text-muted); padding: 0 var(--space-2); }
+
+/* ---------- Two-handle range ---------- */
+.range2 { position: relative; height: 44px; touch-action: pan-y; }
+.range2__track {
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  top: 50%;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: var(--radius-pill);
+  background:
+    linear-gradient(to right, transparent var(--lo), var(--color-accent-bright) var(--lo), var(--color-accent-bright) var(--hi), transparent var(--hi)),
+    var(--color-border-strong);
+}
+.range2__input {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 44px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+}
+.range2__input::-webkit-slider-runnable-track { height: 6px; background: transparent; }
+.range2__input::-moz-range-track { background: transparent; }
+.range2__input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 30px;
+  height: 30px;
+  margin-top: -12px;
+  border-radius: 50%;
+  background: var(--color-knob);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+.range2__input::-moz-range-thumb { pointer-events: auto; width: 30px; height: 30px; border-radius: 50%; background: var(--color-knob); border: 1px solid var(--color-border); box-shadow: var(--shadow-md); cursor: pointer; }
+.range2__input:focus-visible { outline: none; }
+.range2__input:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--color-accent-soft), var(--shadow-md); }
+.range2__input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(--color-accent-soft), var(--shadow-md); }

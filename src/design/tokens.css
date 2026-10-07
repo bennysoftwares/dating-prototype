@@ -4,11 +4,21 @@
  */
 
 :root {
-  /* ---------- Brand ---------- */
-  --brand-accent-light: #a8443a;      /* rosewood */
-  --brand-accent-dark: #e48572;
-  --font-display: 'Fraunces', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  /* ---------- Brand: TurtleDoves ---------- */
+  /* Warm ivory, peach, dusty rose, terracotta, clay, espresso and warm gray. */
+  --brand-ivory: #f8f3ec;
+  --brand-terracotta: #c96f58;        /* decorative accent: hearts, sliders, toggles, highlights */
+  --brand-terracotta-deep: #a9533d;   /* accent for text and filled buttons (AA on ivory and white) */
+  --brand-clay: #e7b5a7;
+  --brand-peach: #f3d2c0;
+  --brand-rose: #c97c78;
+  --brand-espresso: #201916;
+  --brand-warm-gray: #817873;
+  --brand-accent-light: var(--brand-terracotta-deep);
+  --brand-accent-dark: #e39079;
+  /* Editorial serif for the wordmark, names and major headings; a clean sans for everything else. */
+  --font-display: 'Newsreader Variable', 'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-body: 'DM Sans Variable', 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
   /* ---------- Spacing (4px grid) ---------- */
   --space-0: 0;
@@ -28,8 +38,9 @@
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-xl: 28px;
+  --radius-lg: 18px;      /* settings and content cards */
+  --radius-xl: 24px;      /* large photo cards */
+  --radius-card: clamp(20px, 6vw, 28px); /* the Explore card scales with the device */
   --radius-pill: 999px;
 
   /* ---------- Typography ---------- */
@@ -40,6 +51,7 @@
   --text-xl: 1.375rem;    /* 22 */
   --text-2xl: 1.75rem;    /* 28 */
   --text-3xl: 2.25rem;    /* 36 */
+  --text-4xl: 2.75rem;    /* 44 */
   --leading-tight: 1.15;
   --leading-snug: 1.3;
   --leading-normal: 1.5;
@@ -70,17 +82,24 @@
   /* ---------- On-photo & controls (same in both themes) ---------- */
   --color-on-photo: #ffffff;
   --color-on-photo-muted: rgba(255, 255, 255, 0.55);
-  --color-photo-scrim: rgba(20, 14, 12, 0.62);
+  --color-photo-scrim: rgba(32, 22, 18, 0.66);
+  --photo-gradient: linear-gradient(180deg, rgba(32, 22, 18, 0) 38%, rgba(32, 22, 18, 0.35) 60%, rgba(32, 22, 18, 0.86) 100%);
+  --color-photo-chip: rgba(255, 248, 242, 0.16);
+  --color-photo-chip-border: rgba(255, 248, 242, 0.28);
   --color-photo-glass: rgba(255, 255, 255, 0.18);
   --color-photo-glass-strong: rgba(255, 255, 255, 0.85);
   --color-photo-badge: rgba(20, 14, 12, 0.6);
   --color-photo-ink: #1f1a17;
-  --color-verified: #8fd0ff;
+  --color-verified: #f0a48f;
   --color-knob: #ffffff;
   --shadow-knob: 0 1px 3px rgba(0, 0, 0, 0.25);
   --art-sage: linear-gradient(155deg, #b9c6a8, #5d6f52);
   --art-sea: linear-gradient(155deg, #a9c3c8, #3f6470);
   --art-clay: linear-gradient(155deg, #d9a48f, #8c4a3c);
+  /* Swipe feedback and the two Explore actions. */
+  --color-pass: #201916;
+  --color-like: #c96f58;
+  --gradient-accent: linear-gradient(135deg, #b35c45, #9e4c38);
 
   /* ---------- Z-index ---------- */
   --z-header: 20;
@@ -92,61 +111,74 @@
 :root,
 :root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #fbf8f4;
-  --color-surface: #ffffff;
+  --color-bg: #f8f3ec;
+  --color-bg-glow: radial-gradient(110% 55% at 100% 0%, rgba(240, 190, 172, 0.42), transparent 62%), radial-gradient(90% 50% at 0% 100%, rgba(243, 210, 192, 0.38), transparent 60%);
+  --color-surface: #fffcf8;
   --color-surface-raised: #ffffff;
-  --color-surface-sunken: #f3ede6;
-  --color-text: #1f1a17;
-  --color-text-muted: #6b6058;
-  --color-text-subtle: #736860; /* ≥4.5:1 on every light surface */
-  --color-border: #e9e0d6;
-  --color-border-strong: #d8ccbf;
+  --color-surface-sunken: #f3ebe2;
+  --color-text: #201916;
+  --color-text-muted: #6f6560;
+  --color-text-subtle: #70665f; /* ≥4.5:1 on every light surface */
+  --color-border: #ece2d7;
+  --color-border-strong: #dccdbe;
   --color-accent: var(--brand-accent-light);
-  --color-accent-hover: #933a31;
+  --color-accent-bright: var(--brand-terracotta);
+  --color-accent-hover: #934531;
   --color-accent-contrast: #ffffff;
-  --color-accent-soft: #f5e4df;
-  --color-accent-soft-text: #8a372e;
+  --color-accent-soft: #f6e6de;
+  --color-accent-soft-text: #9a4a36;
+  --color-icon-circle: #f7e4da;
   --color-success: #3f7a55;
   --color-success-soft: #e3efe6;
   --color-danger: #b3362c;
-  --color-focus: #a8443a;
+  --color-focus: #a9533d;
   --color-overlay: rgba(31, 26, 23, 0.4);
-  --color-header-bg: rgba(251, 248, 244, 0.94);
-  --color-nav-bg: rgba(255, 255, 255, 0.92);
+  --color-header-bg: rgba(248, 243, 236, 0.9);
+  --color-nav-bg: rgba(255, 251, 247, 0.94);
+  --color-action-pass-bg: #fffaf5;
+  --color-action-like-bg: #f8d9cc;
 
-  --shadow-sm: 0 1px 2px rgba(56, 38, 26, 0.06);
-  --shadow-md: 0 1px 2px rgba(56, 38, 26, 0.05), 0 6px 18px rgba(56, 38, 26, 0.07);
-  --shadow-lg: 0 2px 6px rgba(56, 38, 26, 0.06), 0 18px 40px rgba(56, 38, 26, 0.1);
+  --shadow-sm: 0 1px 2px rgba(74, 44, 30, 0.06);
+  --shadow-md: 0 1px 2px rgba(74, 44, 30, 0.04), 0 8px 22px rgba(74, 44, 30, 0.07);
+  --shadow-lg: 0 2px 6px rgba(74, 44, 30, 0.06), 0 22px 48px rgba(74, 44, 30, 0.14);
+  --shadow-accent: 0 8px 20px rgba(169, 83, 61, 0.28);
 }
 
 /* ---------- Dark theme ---------- */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #141110;
-  --color-surface: #1c1816;
-  --color-surface-raised: #241f1c;
-  --color-surface-sunken: #100d0c;
-  --color-text: #f3ede7;
-  --color-text-muted: #b3a79d;
-  --color-text-subtle: #9a8e84; /* ≥4.5:1 on every dark surface */
-  --color-border: #2f2825;
-  --color-border-strong: #423934;
+  --color-bg: #1a1412;
+  --color-bg-glow: radial-gradient(110% 55% at 100% 0%, rgba(201, 111, 88, 0.14), transparent 62%), radial-gradient(90% 50% at 0% 100%, rgba(201, 124, 120, 0.1), transparent 60%);
+  --color-surface: #231c19;
+  --color-surface-raised: #2b2320;
+  --color-surface-sunken: #140f0d;
+  --color-text: #f5ece3;
+  --color-text-muted: #b4a79d;
+  --color-text-subtle: #a69990; /* ≥4.5:1 on every dark surface */
+  --color-border: #352b26;
+  --color-border-strong: #483b34;
   --color-accent: var(--brand-accent-dark);
-  --color-accent-hover: #ee9a89;
-  --color-accent-contrast: #1d1210;
-  --color-accent-soft: #3a2420;
-  --color-accent-soft-text: #f0a797;
+  --color-accent-bright: #e39079;
+  --color-accent-hover: #eba28d;
+  --color-accent-contrast: #1a1412;
+  --color-accent-soft: #3a2520;
+  --color-accent-soft-text: #f0a898;
+  --color-icon-circle: #3a2722;
   --color-success: #7fbf94;
   --color-success-soft: #1f3226;
   --color-danger: #f08277;
-  --color-focus: #e48572;
+  --color-focus: #e39079;
   --color-overlay: rgba(0, 0, 0, 0.55);
-  --color-header-bg: rgba(20, 17, 16, 0.94);
-  --color-nav-bg: rgba(28, 24, 22, 0.92);
+  --color-header-bg: rgba(26, 20, 18, 0.9);
+  --color-nav-bg: rgba(35, 28, 25, 0.94);
+  --color-action-pass-bg: #f5ece3;
+  --color-action-like-bg: #f2c9b9;
+  --gradient-accent: linear-gradient(135deg, #e7997f, #d98168);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 20px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 2px 6px rgba(0, 0, 0, 0.4), 0 20px 44px rgba(0, 0, 0, 0.45);
+  --shadow-accent: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {

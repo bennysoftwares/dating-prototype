@@ -22,7 +22,7 @@ export function basicFacts(p: Profile): Fact[] {
   const facts: Fact[] = [];
   if (p.heightCm && isVisible(p, 'height')) facts.push({ key: 'height', icon: 'ruler', label: formatHeight(p.heightCm) });
   if (p.job && isVisible(p, 'job')) facts.push({ key: 'job', icon: 'briefcase', label: p.job });
-  if (p.education && isVisible(p, 'education')) facts.push({ key: 'education', icon: 'book', label: p.education });
+  if (p.education && isVisible(p, 'education')) facts.push({ key: 'education', icon: 'graduation', label: p.education });
   if (p.languages.length) facts.push({ key: 'languages', icon: 'globe', label: p.languages.join(', ') });
   return facts;
 }

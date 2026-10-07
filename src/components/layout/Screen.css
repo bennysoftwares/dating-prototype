@@ -4,6 +4,7 @@
   z-index: var(--z-header);
   padding-top: var(--safe-top);
   background: var(--color-header-bg);
+  border-bottom: 1px solid transparent;
   -webkit-backdrop-filter: saturate(160%) blur(16px);
   backdrop-filter: saturate(160%) blur(16px);
 }
@@ -29,9 +30,9 @@
 }
 .screen__title {
   font-family: var(--font-display);
-  font-size: var(--text-3xl);
+  font-size: clamp(2rem, 8.5vw, 2.5rem);
   font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: -0.025em;
   line-height: var(--leading-tight);
 }
 .screen__actions { display: flex; gap: var(--space-1); margin-bottom: -4px; }
@@ -51,13 +52,13 @@
 }
 
 .section { display: flex; flex-direction: column; gap: var(--space-3); }
+.screen__body { gap: var(--space-6); }
 .section__head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); }
 .section__title {
-  font-size: var(--text-xs);
+  padding: 0 var(--space-1);
+  font-size: var(--text-md);
   font-weight: var(--weight-semibold);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-  color: var(--color-text-subtle);
+  color: var(--color-text-muted);
 }
 .section__description { color: var(--color-text-muted); font-size: var(--text-sm); margin-top: calc(var(--space-2) * -1); }
 
@@ -70,3 +71,8 @@
   .screen--wide .screen__header-inner,
   .screen--wide .screen__body { max-width: 1000px; }
 }
+
+/* Screens with both a back button and a text action (e.g. Discovery settings). */
+.screen--compact-title .screen__title { font-size: clamp(1.625rem, 6.6vw, 2.25rem); }
+.screen--compact-title .screen__header-inner { align-items: center; }
+.screen--compact-title .screen__leading, .screen--compact-title .screen__actions { align-self: center; margin-bottom: 0; }

@@ -1,0 +1,54 @@
+.deck {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  outline: none;
+  border-radius: var(--radius-card);
+}
+.deck:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
+.deck__stack { position: relative; flex: 1; min-height: 0; }
+
+.deck__card {
+  position: absolute;
+  inset: 0;
+  --pcard-actions-space: calc(clamp(62px, 17.5vw, 78px) + clamp(14px, 2.6vh, 24px) + 6px);
+}
+.deck__card--top {
+  z-index: 2;
+  touch-action: none;
+  cursor: grab;
+  will-change: transform;
+}
+.deck__card--top:active { cursor: grabbing; }
+/* The next person waits just behind, settling forward as you drag. */
+.deck__card--next {
+  z-index: 1;
+  transform: scale(calc(0.955 + 0.045 * var(--progress, 0))) translateY(calc(10px - 10px * var(--progress, 0)));
+  filter: brightness(calc(0.9 + 0.1 * var(--progress, 0)));
+  pointer-events: none;
+}
+.deck__card--flying {
+  z-index: 3;
+  pointer-events: none;
+  animation: deck-fly 340ms cubic-bezier(0.3, 0.6, 0.35, 1) forwards;
+}
+.deck__card--fly-right { --to-x: 130vw; --to-r: 18deg; }
+.deck__card--fly-left { --to-x: -130vw; --to-r: -18deg; }
+.deck__card--fly-right .pcard { --swipe: 1; }
+.deck__card--fly-left .pcard { --swipe: -1; }
+@keyframes deck-fly {
+  from { transform: translate3d(var(--from-x), var(--from-y), 0) rotate(var(--from-r)); }
+  to { transform: translate3d(var(--to-x), calc(var(--from-y) + 60px), 0) rotate(var(--to-r)); }
+}
+
+/* Rewind: the person slides back in from the side they left. */
+.deck__card--return-left { animation: deck-return-left 380ms var(--ease-out) backwards; }
+.deck__card--return-right { animation: deck-return-right 380ms var(--ease-out) backwards; }
+@keyframes deck-return-left { from { transform: translate3d(-110%, 30px, 0) rotate(-14deg); } }
+@keyframes deck-return-right { from { transform: translate3d(110%, 30px, 0) rotate(14deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .deck__card--next { transform: none; filter: none; }
+  .deck__card--return-left, .deck__card--return-right { animation: none; }
+}

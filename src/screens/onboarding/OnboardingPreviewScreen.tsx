@@ -36,9 +36,10 @@ export function OnboardingPreviewScreen() {
     setError(null);
     try {
       await users.completeOnboarding(profile, draftToPreferences(draft));
-      await refresh();
-      navigate(ROUTES.discover, { replace: true });
+      // Saved: the draft is no longer needed. `busy` keeps this screen from bouncing back into the flow.
       clearOnboardingDraft();
+      await refresh();
+      navigate(ROUTES.explore, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'We couldn’t save your profile. Try again.');
       setBusy(false);

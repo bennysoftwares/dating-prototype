@@ -1,6 +1,6 @@
 import type { DailyPicks, ID, Preferences, Profile } from '../domain/types';
 
-/** Size of the curated daily set. Small on purpose: fewer, better-considered people. */
+/** Size of Standouts, the curated daily set. Small on purpose: a few especially good fits. */
 export const DAILY_PICKS_SIZE = 12;
 
 /** Local calendar date, YYYY-MM-DD. */
@@ -12,7 +12,7 @@ export function todayKey(now = new Date()): string {
 
 /** Cheap stable hash of everything that changes who should be shown. */
 export function preferenceFingerprint(viewer: Profile, prefs: Preferences): string {
-  const input = JSON.stringify([prefs.interestedIn, prefs.age, prefs.distance, prefs.intents, prefs.smoking, prefs.drinking, prefs.children, prefs.wantsChildren, prefs.religion, prefs.politics, prefs.education, prefs.height, viewer.location, viewer.intent]);
+  const input = JSON.stringify([prefs.interestedIn, prefs.age, prefs.distance, prefs.intents, prefs.smoking, prefs.drinking, prefs.children, prefs.wantsChildren, prefs.religion, prefs.politics, prefs.education, prefs.height, prefs.verifiedOnly ?? false, prefs.requireBio ?? false, prefs.minPhotos ?? 1, viewer.location, viewer.intent]);
   let h = 5381;
   for (let i = 0; i < input.length; i += 1) h = ((h << 5) + h + input.charCodeAt(i)) | 0;
   return (h >>> 0).toString(36);
@@ -30,7 +30,7 @@ interface PlanInput {
 /**
  * Today's set is fixed once created, so it never reshuffles mid-day.
  * If preferences change, people already decided today stay counted and the rest is refilled,
- * so editing preferences can't be used to get an endless feed.
+ * so editing preferences doesn't reshuffle Standouts. (Explore is the continuous feed.)
  */
 export function planDailyPicks({ existing, rankedUndecided, decided, today, fingerprint }: PlanInput): DailyPicks {
   if (existing && existing.date === today && existing.fingerprint === fingerprint) return existing;
