@@ -1,0 +1,25 @@
+.discover__intro { color: var(--color-text-muted); max-width: 40ch; margin-bottom: calc(var(--space-4) * -1); }
+.discover__lead { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: var(--space-4); }
+.discover__loading { display: flex; flex-direction: column; gap: var(--space-4); }
+.discover__hero-skeleton { border-radius: var(--radius-xl); }
+.discover__strip {
+  display: flex;
+  gap: var(--space-4);
+  margin: 0 calc(var(--gutter) * -1);
+  padding: var(--space-1) var(--gutter) var(--space-2);
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.discover__strip::-webkit-scrollbar { display: none; }
+.discover__strip-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  scroll-snap-align: start;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--color-text-muted);
+}

@@ -1,0 +1,8 @@
+.logo { display: inline-flex; align-items: center; gap: var(--space-2); }
+.logo-mark { flex: none; }
+.logo__name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+}
