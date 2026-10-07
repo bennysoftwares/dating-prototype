@@ -1,25 +1,18 @@
 import { useNavigate } from 'react-router';
-import { ONBOARDING_ROUTES } from '../../app/navigation';
+import { ACCOUNT_ROUTES } from '../../app/navigation';
 import { Logo } from '../../components/brand/Logo';
 import { Button } from '../../components/ui';
-import { useOnboardingDraft } from '../../onboarding/useOnboardingDraft';
 import { localDb } from '../../repositories/local/localDb';
 import { useSession } from '../../session/SessionProvider';
-import { getStep, STEPS } from './stepRegistry';
 import './WelcomeScreen.css';
 
 export function WelcomeScreen() {
   const navigate = useNavigate();
   const { refresh } = useSession();
-  const { hasDraft, lastStepId } = useOnboardingDraft();
-  const resumeStep = getStep(lastStepId);
 
-  const start = () => navigate(ONBOARDING_ROUTES.step(STEPS[0]!.id));
-  const resume = () => navigate(ONBOARDING_ROUTES.step(resumeStep?.id ?? STEPS[0]!.id));
-
-  // Prototype convenience: skip onboarding with the preconfigured demo profile.
-  // Once the session refreshes, the guest gate sends the now-onboarded user to Explore.
-  const useDemo = async () => {
+  // Prototype convenience: skip setup with the preconfigured demo profile.
+  // Once the session refreshes, the gate sends the now-signed-in user to Explore.
+  const openDemo = async () => {
     localDb.loadDemoUser();
     await refresh();
   };
@@ -46,15 +39,9 @@ export function WelcomeScreen() {
       </div>
 
       <div className="welcome__actions">
-        {hasDraft ? (
-          <>
-            <Button size="lg" block onClick={resume}>Continue your profile</Button>
-            <Button size="lg" variant="secondary" block onClick={start}>Start from the beginning</Button>
-          </>
-        ) : (
-          <Button size="lg" block onClick={start}>Create your profile</Button>
-        )}
-        <Button variant="quiet" block onClick={() => void useDemo()}>Explore with the demo profile</Button>
+        <Button size="lg" block onClick={() => navigate(ACCOUNT_ROUTES.create)}>Create account</Button>
+        <Button size="lg" variant="secondary" block onClick={() => navigate(ACCOUNT_ROUTES.signIn)}>I already have an account</Button>
+        <Button variant="quiet" block onClick={() => void openDemo()}>Explore with the demo profile</Button>
         <p className="welcome__note">This is a demo. Everything you enter stays on this device.</p>
       </div>
     </main>

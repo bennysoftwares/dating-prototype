@@ -33,7 +33,8 @@ npm run typecheck  # TypeScript only
 
 On first launch you land on **Welcome**:
 
-- **Create your profile** walks through onboarding (19 short steps and a preview).
+- **Create account** walks through getting started: an account (email and password, or Apple / Google, simulated), a 6-digit email check (the demo shows the code on screen), a short "Let's set up your profile" overview, then the profile itself (19 short steps and a preview).
+- **I already have an account** signs back in. Everything stays on the device while signed out.
 - **Explore with the demo profile** skips straight in as *Alex*, with matches, likes and a planned date ready to try.
 
 A good tour: **Explore** → swipe a few people (or use ✕ and ♥) → tap a card's info to open the full profile → like a specific answer with a message → **Standouts** → **Likes** → match with Sofia → **Chats** → chat (drafts, emoji, photo/voice placeholders) → accept Maja's date and **Share date** → **Explore → sliders icon** (Discovery settings) → change the max distance and watch Explore refill. Toggle **Premium** in the developer panel to try the top-right undo. Use the developer panel (below) to reach states that would otherwise take days, like a quiet chat or a finished date.
@@ -61,6 +62,7 @@ The panel is hidden from normal use. Open `#/debug`, or tap the version line at 
 
 ## Features
 
+- **Getting started:** Welcome → Create account → Verify email → Profile intro → profile steps → Explore. One required confirmation (18+ and the Terms / Privacy Policy) before any account is made. Passwords are stored only as a salted hash, even in the demo. Sign in, forgot password (same answer for any email, so accounts can't be discovered), sign out in Settings, and placeholder Terms and Privacy pages that list what the real documents must cover.
 - **Splash:** an instant, responsive TurtleDoves splash (doves and wordmark) painted straight from `index.html` before any JavaScript loads, sized from the viewport and safe areas rather than a fixed screenshot.
 - **Onboarding and profile:** multi-step onboarding with saved progress, 3–6 photos (reorder, replace, delete), 2–3 prompts, 5–10 interests, per-field "show on profile", and editing via the same steps.
 - **Explore (swipe feed):** one person at a time. Drag the card: it follows your finger with a slight tilt and a soft like/pass cue, snaps back if you let go early, and flies off once past the threshold (or with a quick flick). **✕ = swipe left = pass. ♥ = swipe right = like.** The arrow keys do the same. Tap the left or right of the photo to change photos. Tap the name and details (or the ⌃ button) and the card opens in place into the full profile: the photo on top, then *Looking for*, *About me*, *The basics*, each prompt, lifestyle, interests and compatibility, each with a **Reply** (a like with an optional message on that part), plus Block and Report. ✕ and ♥ float at the bottom and act exactly like swiping; the ⌄ button (or the back gesture) folds it back into the card. Pages of people load in the background before the queue runs low, so swiping is continuous until there's genuinely nobody left within your distance and filters. Then you see *You've seen everyone nearby.* with one-tap ways to widen distance or age.
@@ -109,6 +111,7 @@ src/
 - **Blocking** is enforced in the repositories, so blocked people disappear from every list. A real backend should enforce it server-side too.
 - **Privacy rule:** hidden profile fields are never used in compatibility text. For a dealbreaker, a hidden answer counts as "can't confirm" and excludes.
 - **Brand:** the name, colours and logo are centralised (`config/brand.ts`, the Brand section of `tokens.css`, `components/brand/Logo.tsx` and `wordmark.ts`). The splash in `index.html` inlines the same artwork. The storage namespace stays `dp` on purpose, so existing saved data keeps working.
+- **Accounts:** `AuthRepository` (`src/repositories/types.ts`) is separate from the user and profile, like a real auth provider. The local version (`repositories/local/authRepo.ts`) keeps one account per device; Supabase Auth, Firebase Auth or similar replaces it without screen changes. `session/homeFor.ts` decides where someone belongs (signed out → welcome, unverified → verify, no profile → profile intro, otherwise Explore), and every route gate uses it. Profiles created before accounts existed get a "device" account automatically, so nobody is locked out.
 - **Routes:** `/explore`, `/standouts`, `/likes`, `/chats`, `/profile`. The old `/discover` and `/matches` links redirect.
 
 ## Deploying to GitHub Pages
@@ -121,7 +124,8 @@ Routing uses hashes (`/#/discover`), so refreshing or opening any screen directl
 
 ## Known limitations
 
-- No backend, authentication, payments, real verification, contact matching, notifications or emergency-service integration. These are mocked or shown as placeholders.
+- Accounts are on-device only: no emails are sent (the verification code is shown on screen), Apple and Google sign-in are simulated, and password reset doesn't send a link.
+- No backend, payments, real verification, contact matching, notifications or emergency-service integration. These are mocked or shown as placeholders.
 - Photo and voice messages are placeholders, and uploaded profile photos are resized and stored in `localStorage` (a few MB at most). Mock people use generated placeholder art, not real photos.
 - Online status isn't shown because the app has no presence system (by design, nothing fakes it).
 - "Pages" of people come from the local repository, so loading more is instant apart from a small simulated delay.

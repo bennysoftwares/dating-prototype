@@ -25,8 +25,17 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: 'device' | '
 export function SettingsScreen() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { account, safety } = useRepositories();
-  const { refresh } = useSession();
+  const { account, safety, auth } = useRepositories();
+  const { state: session, refresh } = useSession();
+  const signIn = session.status === 'ready' ? session.auth.account : null;
+  const signInLabel = !signIn
+    ? 'Not signed in'
+    : signIn.method === 'email' ? `Email · ${signIn.email}`
+    : signIn.method === 'apple' ? 'Apple'
+    : signIn.method === 'google' ? 'Google'
+    : signIn.method === 'demo' ? 'Demo profile on this device'
+    : 'This device';
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const { paused, incognito, plan } = useAccount();
   const [planOpen, setPlanOpen] = useState(false);
   const { conversations } = useConnections();
@@ -54,6 +63,12 @@ export function SettingsScreen() {
     toast({ message: 'Your data was downloaded' });
   };
 
+  const signOut = async () => {
+    await auth.signOut();
+    setSignOutOpen(false);
+    await refresh();
+  };
+
   const deleteAccount = async () => {
     await account.deleteAccount();
     setDeleteOpen(false);
@@ -69,8 +84,23 @@ export function SettingsScreen() {
           <ListRow icon="verified" title="Verification" subtitle={verifiedLabel} to={ROUTES.verification} chevron />
           <ListRow icon="sparkle" title="Plan" subtitle={plan === 'premium' ? 'Premium' : 'Free'} onClick={() => setPlanOpen(true)} chevron />
           <ListRow icon="edit" title="Edit profile" to={ROUTES.profileEdit} chevron />
+          <ListRow icon="shield" title="Signed in with" subtitle={signInLabel} />
+          <ListRow icon="signOut" title="Sign out" subtitle="Your profile and chats stay on this device" onClick={() => setSignOutOpen(true)} />
         </ListGroup>
       </Section>
+      <BottomSheet
+        open={signOutOpen}
+        onClose={() => setSignOutOpen(false)}
+        title="Sign out?"
+        footer={
+          <>
+            <Button size="lg" block onClick={() => void signOut()}>Sign out</Button>
+            <Button variant="quiet" block onClick={() => setSignOutOpen(false)}>Cancel</Button>
+          </>
+        }
+      >
+        <p className="settings__note">Everything stays on this device. Sign back in any time to pick up where you left off.</p>
+      </BottomSheet>
 
       <Section title="Dating">
         <ListGroup label="Dating">

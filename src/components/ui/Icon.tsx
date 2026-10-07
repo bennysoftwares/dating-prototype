@@ -191,6 +191,7 @@ const PATHS = {
   rewind: <path d="M4.8 13a7.3 7.3 0 1 0 2.1-6.1L4.5 9.2M4.5 4.7v4.5H9" />,
   document: <path d="M7 3.5h7.5L18 7v13.5H7V3.5ZM14.5 3.5V7H18M9.5 11h6M9.5 14h6M9.5 17h4" />,
   chevronUp: <path d="m6 14.5 6-6 6 6" />,
+  signOut: <path d="M10 4.5H6.5a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2H10M15 8l4 4-4 4M19 12H9" />,
   chevronDown: <path d="m6 9.5 6 6 6-6" />,
 } as const;
 

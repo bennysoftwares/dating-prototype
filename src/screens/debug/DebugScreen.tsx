@@ -7,6 +7,7 @@ import { brand } from '../../config/brand';
 import { createDemoPreferences, createDemoProfile } from '../../data/mock';
 import { profileToDraft } from '../../onboarding/draft';
 import { debugTools } from '../../repositories/local/debugTools';
+import { ensureDeviceSession, readAccount, signOutLocal } from '../../repositories/local/authRepo';
 import { DB_SCHEMA_VERSION, localDb } from '../../repositories/local/localDb';
 import { STORAGE_KEYS } from '../../storage/keys';
 import { storage } from '../../storage/storage';
@@ -58,6 +59,9 @@ export function DebugScreen() {
     reloadTo('#/welcome');
   };
 
+  const authAccount = readAccount();
+  const signedIn = Boolean(authAccount && storage.get<{ accountId: string } | null>(STORAGE_KEYS.authSession.key, null)?.accountId === authAccount.id);
+
   const loadDemo = () => {
     localDb.loadDemoUser();
     reloadTo('#/profile');
@@ -65,11 +69,13 @@ export function DebugScreen() {
 
   const restartOnboarding = () => {
     localDb.restartOnboarding();
-    reloadTo('#/welcome');
+    ensureDeviceSession();
+    reloadTo('#/onboarding');
   };
 
   const prefillDraft = () => {
     localDb.restartOnboarding();
+    ensureDeviceSession();
     const draft = profileToDraft(createDemoProfile(new Date().toISOString()), createDemoPreferences());
     const { photos, ...rest } = draft;
     storage.set(STORAGE_KEYS.onboardingDraft.key, { ...rest, lastStepId: 'bio' }, STORAGE_KEYS.onboardingDraft.version);
@@ -100,6 +106,8 @@ export function DebugScreen() {
 
       <Section title="Account & onboarding">
         <ListGroup label="Onboarding status">
+          <ListRow title="Account" trailing={authAccount ? `${authAccount.method}${authAccount.email ? ` · ${authAccount.email}` : ''}${authAccount.method === 'email' ? (authAccount.emailVerified ? ' · verified' : ' · unverified') : ''}` : 'None'} />
+          <ListRow title="Signed in" trailing={signedIn ? 'Yes' : 'No'} />
           <ListRow title="Onboarding" trailing={user?.onboardingComplete ? 'Complete' : 'Not complete'} />
           <ListRow title="Saved onboarding draft" trailing={draftExists ? 'Yes' : 'None'} />
         </ListGroup>
@@ -107,6 +115,7 @@ export function DebugScreen() {
           <Button variant="secondary" icon="user" onClick={loadDemo} block>Load demo user (Alex)</Button>
           <Button variant="secondary" icon="refresh" onClick={restartOnboarding} block>Restart onboarding (blank)</Button>
           <Button variant="secondary" icon="edit" onClick={prefillDraft} block>Prefill onboarding with Alex</Button>
+          <Button variant="secondary" icon="signOut" onClick={() => { signOutLocal(); reloadTo('#/welcome'); }} block disabled={!signedIn}>Sign out</Button>
         </div>
       </Section>
 

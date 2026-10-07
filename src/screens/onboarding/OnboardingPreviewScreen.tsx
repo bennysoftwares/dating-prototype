@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router';
-import { ONBOARDING_ROUTES, ROUTES } from '../../app/navigation';
+import { Navigate } from 'react-router';
+import { ONBOARDING_ROUTES } from '../../app/navigation';
 import { ProfileView } from '../../components/profile/ProfileView';
 import { ListGroup, ListRow } from '../../components/ui';
 import { draftToPreferences, draftToProfile } from '../../onboarding/draft';
@@ -18,7 +18,6 @@ export function OnboardingPreviewScreen() {
   const { draft } = useOnboardingDraft();
   const { users } = useRepositories();
   const { refresh } = useSession();
-  const navigate = useNavigate();
   const back = useBack();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,8 +37,8 @@ export function OnboardingPreviewScreen() {
       await users.completeOnboarding(profile, draftToPreferences(draft));
       // Saved: the draft is no longer needed. `busy` keeps this screen from bouncing back into the flow.
       clearOnboardingDraft();
+      // The session gate now sees a finished profile and opens Explore.
       await refresh();
-      navigate(ROUTES.explore, { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'We couldn’t save your profile. Try again.');
       setBusy(false);

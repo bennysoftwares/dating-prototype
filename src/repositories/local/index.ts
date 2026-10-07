@@ -6,6 +6,7 @@ import { rankCandidates } from '../../recommendation';
 import { createId } from '../../utils/id';
 import { StorageFullError, type Repositories } from '../types';
 import { createLocalAccountRepository } from './accountRepo';
+import { createLocalAuthRepository } from './authRepo';
 import { createLocalDatesRepository } from './datesRepo';
 import { localDb, withLatency } from './localDb';
 import { createLocalSafetyRepository } from './safetyRepo';
@@ -52,6 +53,7 @@ export function createLocalRepositories(): Repositories {
   };
 
   return {
+    auth: createLocalAuthRepository(),
     users: {
       getCurrentUser: () => withLatency(currentUser),
       getPreferences: () => withLatency(() => localDb.preferences()),

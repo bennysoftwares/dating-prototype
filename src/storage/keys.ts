@@ -15,6 +15,11 @@ export const STORAGE_KEYS = {
   dbDates: { key: 'db.dates', version: 1 },
   dbDateFeedback: { key: 'db.dateFeedback', version: 1 },
   dbPrivacy: { key: 'db.privacy', version: 1 },
+  /** Sign-in account and whether this device is signed in. */
+  authAccount: { key: 'auth.account', version: 1 },
+  authSession: { key: 'auth.session', version: 1 },
+  /** A pending email verification code (prototype: shown on screen, never emailed). */
+  authPending: { key: 'auth.pending', version: 1 },
   /** Unsent message drafts per match. */
   drafts: { key: 'drafts', version: 1 },
   onboardingDraft: { key: 'onboarding.draft', version: 1 },

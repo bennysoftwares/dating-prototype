@@ -11,6 +11,9 @@ const arr = (o: Record<string, unknown>, ...keys: string[]) => keys.every((k) =>
 export const isUser = (v: unknown): v is import('../../domain/types').User =>
   isObj(v) && str(v, 'id', 'profileId') && typeof v.onboardingComplete === 'boolean';
 
+export const isAuthAccount = (v: unknown): v is import('../../domain/types').AuthAccount =>
+  isObj(v) && str(v, 'id', 'userId', 'method', 'createdAt') && typeof v.emailVerified === 'boolean';
+
 export const isPreferences = (v: unknown): v is import('../../domain/types').Preferences =>
   isObj(v) && arr(v, 'interestedIn') && isObj(v.age) && isObj(v.distance);
 

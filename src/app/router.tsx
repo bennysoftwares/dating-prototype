@@ -18,7 +18,7 @@ import { ProfileScreen } from '../screens/profile/ProfileScreen';
 import { NotFoundScreen } from '../screens/system/NotFoundScreen';
 import { RouteError } from '../screens/system/RouteError';
 import { SessionGate, Splash } from '../screens/system/SessionGate';
-import { ONBOARDING_ROUTES, ROUTES } from './navigation';
+import { ACCOUNT_ROUTES, ONBOARDING_ROUTES, ROUTES } from './navigation';
 
 /** Old paths (Discover, Matches) keep working: redirect, carrying any id along. */
 function Moved({ to }: { to: (params: Record<string, string | undefined>) => string }) {
@@ -46,16 +46,35 @@ export const router = createHashRouter([
       { path: '/matches/:matchId', element: <Moved to={(p) => ROUTES.chat(p.matchId ?? '')} /> },
       { path: '/matches/:matchId/profile', element: <Moved to={(p) => ROUTES.chatProfile(p.matchId ?? '')} /> },
 
-      // Not finished onboarding yet.
+      // Getting started, stage 1: signed out (welcome, create an account, sign in).
       {
-        element: <SessionGate mode="guest" />,
+        element: <SessionGate mode="signed-out" />,
         children: [
           { path: ONBOARDING_ROUTES.welcome, lazy: () => import('../screens/onboarding/WelcomeScreen').then((m) => ({ Component: m.WelcomeScreen })) },
-          { path: ONBOARDING_ROUTES.preview, lazy: () => import('../screens/onboarding/OnboardingPreviewScreen').then((m) => ({ Component: m.OnboardingPreviewScreen })) },
-          { path: '/onboarding/:stepId', lazy: () => import('../screens/onboarding/OnboardingStepScreen').then((m) => ({ Component: m.OnboardingStepScreen })) },
-          { path: '/onboarding', element: <Navigate to={ONBOARDING_ROUTES.welcome} replace /> },
+          { path: ACCOUNT_ROUTES.create, lazy: () => import('../screens/account/CreateAccountScreen').then((m) => ({ Component: m.CreateAccountScreen })) },
+          { path: ACCOUNT_ROUTES.signIn, lazy: () => import('../screens/account/SignInScreen').then((m) => ({ Component: m.SignInScreen })) },
+          { path: ACCOUNT_ROUTES.forgot, lazy: () => import('../screens/account/ForgotPasswordScreen').then((m) => ({ Component: m.ForgotPasswordScreen })) },
         ],
       },
+      // Stage 2: confirm the email address.
+      {
+        element: <SessionGate mode="verify" />,
+        children: [
+          { path: ACCOUNT_ROUTES.verify, lazy: () => import('../screens/account/VerifyEmailScreen').then((m) => ({ Component: m.VerifyEmailScreen })) },
+        ],
+      },
+      // Stage 3: set up the profile.
+      {
+        element: <SessionGate mode="onboarding" />,
+        children: [
+          { path: ONBOARDING_ROUTES.intro, lazy: () => import('../screens/onboarding/OnboardingIntroScreen').then((m) => ({ Component: m.OnboardingIntroScreen })) },
+          { path: ONBOARDING_ROUTES.preview, lazy: () => import('../screens/onboarding/OnboardingPreviewScreen').then((m) => ({ Component: m.OnboardingPreviewScreen })) },
+          { path: '/onboarding/:stepId', lazy: () => import('../screens/onboarding/OnboardingStepScreen').then((m) => ({ Component: m.OnboardingStepScreen })) },
+        ],
+      },
+      // Terms and Privacy: readable at any stage.
+      { path: ACCOUNT_ROUTES.terms, lazy: () => import('../screens/account/LegalScreen').then((m) => ({ Component: m.TermsScreen })) },
+      { path: ACCOUNT_ROUTES.privacy, lazy: () => import('../screens/account/LegalScreen').then((m) => ({ Component: m.PrivacyScreen })) },
 
       // Signed in with a finished profile.
       {

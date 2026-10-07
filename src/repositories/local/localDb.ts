@@ -3,6 +3,7 @@ import type { Block, DailyPicks, DateFeedback, DatePlan, Like, Match, Message, P
 import { storage } from '../../storage/storage';
 import { STORAGE_KEYS } from '../../storage/keys';
 import { sleep } from '../../utils/sleep';
+import { clearAuth, createLocalAccount, readAccount } from './authRepo';
 import {
   isBlock,
   isDailyPicks,
@@ -46,6 +47,20 @@ const K = STORAGE_KEYS;
 
 export const localDb = {
   ensureSeeded(): void {
+    this.seed();
+    this.ensureAccount();
+  },
+
+  /**
+   * Profiles made before accounts existed keep working: they get a "device" account,
+   * signed in, so nobody is locked out by the upgrade.
+   */
+  ensureAccount(): void {
+    const user = this.user();
+    if (user?.onboardingComplete && !readAccount()) createLocalAccount({ method: 'device', emailVerified: true });
+  },
+
+  seed(): void {
     const meta = storage.get<DbMeta | null>(K.dbMeta.key, null);
     if (meta?.schemaVersion === DB_SCHEMA_VERSION && this.user()) return;
     if (meta?.schemaVersion === 5 && this.user()) return this.migrateFromV5();
@@ -146,6 +161,7 @@ export const localDb = {
   /** Wipe app data back to a fresh, un-onboarded account. Keeps theme. */
   reset(): void {
     const seed = createSeed();
+    clearAuth();
     storage.set(K.dbUser.key, seed.user, K.dbUser.version);
     storage.set(K.dbPreferences.key, seed.preferences, K.dbPreferences.version);
     storage.set(K.dbProfiles.key, seed.profiles, K.dbProfiles.version);
@@ -163,6 +179,8 @@ export const localDb = {
   loadDemoUser(): void {
     const user = this.user();
     if (!user) this.reset();
+    clearAuth();
+    createLocalAccount({ method: 'demo', emailVerified: true, termsAcceptedAt: new Date().toISOString() });
     const profile = createDemoProfile(new Date().toISOString());
     this.writeOwnProfile(profile);
     this.writePreferences(createDemoPreferences());

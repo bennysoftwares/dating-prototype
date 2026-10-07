@@ -1,4 +1,5 @@
 import type {
+  AuthAccount,
   Block,
   DailyPicks,
   DateFeedback,
@@ -26,6 +27,39 @@ import type { RankedCandidate } from '../recommendation';
  *
  * All methods are async on purpose, so the UI already handles loading and errors.
  */
+
+/** What the app needs to know about sign-in. */
+export interface AuthState {
+  /** The account on this device, signed in or not. */
+  account: AuthAccount | null;
+  signedIn: boolean;
+}
+
+export interface Consent {
+  /** Confirmed 18+ and accepted the Terms and Privacy Policy. Required to create an account. */
+  accepted: boolean;
+}
+
+/**
+ * Accounts and sign-in. The prototype keeps one account on this device (`./local/authRepo.ts`);
+ * Supabase Auth, Firebase Auth or similar replaces it without touching screens.
+ */
+export interface AuthRepository {
+  getState(): Promise<AuthState>;
+  signUpWithEmail(input: { email: string; password: string; consent: Consent }): Promise<AuthAccount>;
+  /** Sign in with Apple / Google. Creates the account the first time. Prototype: simulated. */
+  continueWithProvider(provider: 'apple' | 'google', consent: Consent): Promise<AuthAccount>;
+  /** Sends a 6-digit code to the account's email. Prototype: returns it so the screen can show it. */
+  sendVerificationCode(): Promise<{ sentTo: string; demoCode: string }>;
+  verifyEmail(code: string): Promise<AuthAccount>;
+  signInWithEmail(email: string, password: string): Promise<AuthAccount>;
+  /** Always resolves the same way, whether or not the email exists (no account enumeration). */
+  requestPasswordReset(email: string): Promise<void>;
+  /** Prototype only: sign back in to a demo or on-device profile, which has no password. */
+  resumeOnDevice(): Promise<AuthAccount>;
+  /** Keeps everything on the device; signing back in restores it. */
+  signOut(): Promise<void>;
+}
 
 export interface UserRepository {
   getCurrentUser(): Promise<User>;
@@ -167,6 +201,7 @@ export interface DatesRepository {
 }
 
 export interface Repositories {
+  auth: AuthRepository;
   users: UserRepository;
   profiles: ProfileRepository;
   matches: MatchRepository;

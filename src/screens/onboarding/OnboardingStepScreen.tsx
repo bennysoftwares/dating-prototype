@@ -38,7 +38,7 @@ export function OnboardingStepScreen() {
     if (fromPreview) back(ONBOARDING_ROUTES.preview);
     else navigate(next ? ONBOARDING_ROUTES.step(next.id) : ONBOARDING_ROUTES.preview);
   };
-  const goBack = () => back(fromPreview ? ONBOARDING_ROUTES.preview : prev ? ONBOARDING_ROUTES.step(prev.id) : ONBOARDING_ROUTES.welcome);
+  const goBack = () => back(fromPreview ? ONBOARDING_ROUTES.preview : prev ? ONBOARDING_ROUTES.step(prev.id) : ONBOARDING_ROUTES.intro);
 
   const { Component } = step;
   return (

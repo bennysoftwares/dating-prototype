@@ -40,8 +40,20 @@ export const ROUTES = {
   debug: '/debug',
 } as const;
 
+/** Getting started: account first, then the profile. */
+export const ACCOUNT_ROUTES = {
+  create: '/account/create',
+  signIn: '/account/sign-in',
+  verify: '/account/verify',
+  forgot: '/account/forgot',
+  terms: '/legal/terms',
+  privacy: '/legal/privacy',
+} as const;
+
 export const ONBOARDING_ROUTES = {
   welcome: '/welcome',
+  /** "Let's set up your profile": the overview before the steps (and where to resume). */
+  intro: '/onboarding',
   step: (stepId: string) => `/onboarding/${stepId}`,
   preview: '/onboarding/preview',
 } as const;

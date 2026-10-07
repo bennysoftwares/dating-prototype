@@ -31,6 +31,31 @@ export interface User {
   plan?: Plan;
 }
 
+/**
+ * How someone signs in. Separate from `User` (the person in the app), like a real auth
+ * provider's account. "device" is a profile made before accounts existed on this device;
+ * "demo" is the preconfigured demo profile.
+ */
+export type AuthMethod = 'email' | 'apple' | 'google' | 'demo' | 'device';
+
+export interface AuthAccount {
+  id: ID;
+  userId: ID;
+  method: AuthMethod;
+  email?: string;
+  /** Email accounts must confirm their address before setting up a profile. */
+  emailVerified: boolean;
+  createdAt: ISODateTime;
+  /** Accepted the Terms and Privacy Policy and confirmed being 18 or older. */
+  termsAcceptedAt?: ISODateTime;
+  /**
+   * Prototype only: a salted hash so the demo can check a password on this device.
+   * A real auth provider stores credentials; the app never does.
+   */
+  passwordHash?: string;
+  passwordSalt?: string;
+}
+
 /** One Free plan and one Premium plan. No other tiers, no consumables. */
 export type Plan = 'free' | 'premium';
 
