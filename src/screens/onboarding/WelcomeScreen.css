@@ -21,16 +21,16 @@
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
 }
-.welcome__card--back { background: linear-gradient(155deg, #b9c6a8, #5d6f52); transform: rotate(-9deg) translateX(-28%); }
-.welcome__card--mid { background: linear-gradient(155deg, #a9c3c8, #3f6470); transform: rotate(8deg) translateX(28%); }
+.welcome__card--back { background: var(--art-sage); transform: rotate(-9deg) translateX(-28%); }
+.welcome__card--mid { background: var(--art-sea); transform: rotate(8deg) translateX(28%); }
 .welcome__card--front {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-5);
-  background: linear-gradient(155deg, #d9a48f, #8c4a3c);
-  color: #fff;
+  background: var(--art-clay);
+  color: var(--color-on-photo);
   animation: welcome-float 6s var(--ease-in-out) infinite alternate;
 }
 .welcome__card-prompt { font-size: var(--text-xs); font-weight: var(--weight-semibold); opacity: 0.85; }

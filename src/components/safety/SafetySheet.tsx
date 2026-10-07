@@ -186,7 +186,7 @@ export function SafetySheet({ person, open, onClose, matchId, extraActions = [],
             <span className="safety__done-icon" aria-hidden="true"><Icon name="check" size={28} /></span>
             <p>We review every report. {name} won't know who reported them.</p>
             {alsoBlock && <p>You've also blocked {name}. You won't see each other again.</p>}
-            <p className="safety__note">Prototype: reports are stored on this device only.</p>
+            <p className="safety__note">In this demo, reports stay on this device.</p>
           </div>
         )}
 

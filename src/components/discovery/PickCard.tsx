@@ -12,7 +12,7 @@ export function PickCard({ candidate, to }: { candidate: RankedCandidate; to: st
   const firstPrompt = profile.prompts[0];
   return (
     <article className="pick-card">
-      <Link to={to} className="pick-card__link" aria-label={`View ${profile.firstName}'s profile`}>
+      <Link to={to} className="pick-card__link">
         <ProfileHeroCard profile={profile} distanceLabel={distanceLabel(profile, distanceKm)} as="div" ratio="5 / 6" />
         <div className="pick-card__body">
           {highlights.length > 0 && (

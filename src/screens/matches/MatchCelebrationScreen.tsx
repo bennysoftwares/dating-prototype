@@ -37,7 +37,7 @@ export function MatchCelebrationScreen() {
 
   return (
     <div className="celebrate">
-      <div className="celebrate__inner">
+      <main className="celebrate__inner">
         <div className="celebrate__photos" aria-hidden="true">
           <div className="celebrate__photo celebrate__photo--me">
             <PhotoFrame photo={viewer.photos[0]} ratio="4 / 5" rounded="xl" monogram={viewer.firstName.charAt(0)} />
@@ -62,7 +62,7 @@ export function MatchCelebrationScreen() {
             <span className="visually-hidden">{other.firstName} wrote: </span>“{theirComment}”
           </p>
         )}
-      </div>
+      </main>
 
       <div className="celebrate__actions">
         <Button size="lg" icon="chat" block onClick={() => navigate(ROUTES.chat(match.id), { replace: true })}>

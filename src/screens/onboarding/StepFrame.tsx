@@ -91,12 +91,12 @@ export function StepFrame({
         </div>
       </header>
 
-      <div key={stepKey} className={cx('step-frame__content', `step-frame__content--${direction}`)}>
+      <main key={stepKey} className={cx('step-frame__content', `step-frame__content--${direction}`)}>
         {eyebrow && <p className="step-frame__eyebrow">{eyebrow}</p>}
         <h1 ref={headingRef} tabIndex={-1} className="step-frame__title">{title}</h1>
         {subtitle && <p className="step-frame__subtitle">{subtitle}</p>}
         <div className="step-frame__body">{children}</div>
-      </div>
+      </main>
 
       <footer className="step-frame__footer">
         {footerNote && <div className="step-frame__note" role="alert">{footerNote}</div>}

@@ -61,7 +61,7 @@ export function VerificationScreen() {
             <p>Optional. Confirms your name and age match a government ID. Your ID is never shown to anyone.</p>
             {verification.id !== 'verified' && <Button variant="secondary" icon="verified" onClick={() => setFlow('id')} disabled={busy}>Verify my ID</Button>}
           </div>
-          <p className="settings__note"><span className="settings__badge">Prototype</span> No camera, biometric or ID provider is used. Verification is simulated.</p>
+          <p className="settings__note"><span className="settings__badge">Demo</span> No camera, biometric or ID service is used here. Verification is simulated.</p>
         </>
       )}
 
@@ -71,7 +71,7 @@ export function VerificationScreen() {
         title={flow === 'photo' ? 'Copy this pose' : 'Verify your ID'}
         footer={
           <Button size="lg" block onClick={() => void run(flow!)} disabled={busy}>
-            {busy ? 'Checking…' : flow === 'photo' ? 'Take selfie (prototype)' : 'Upload ID (prototype)'}
+            {busy ? 'Checking…' : flow === 'photo' ? 'Take selfie' : 'Upload ID'}
           </Button>
         }
       >

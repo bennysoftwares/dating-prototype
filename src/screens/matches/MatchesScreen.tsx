@@ -41,12 +41,14 @@ export function MatchesScreen() {
               <ul className="matches__new" role="list">
                 {fresh.map((c) => (
                   <li key={c.match.id}>
-                    <Link to={ROUTES.chat(c.match.id)} className="matches__new-item" aria-label={`New match with ${c.other.firstName}${c.unread ? `, ${c.unread} unread` : ''}`}>
+                    <Link to={ROUTES.chat(c.match.id)} className="matches__new-item">
+                      <span className="visually-hidden">New match: </span>
                       <span className="matches__new-photo">
                         <Avatar photo={c.other.photos[0]} name={c.other.firstName} size={72} />
                         {c.unread > 0 && <span className="matches__new-dot" aria-hidden="true" />}
                       </span>
                       <span>{c.other.firstName}</span>
+                      {c.unread > 0 && <span className="visually-hidden">, {c.unread} unread</span>}
                     </Link>
                   </li>
                 ))}

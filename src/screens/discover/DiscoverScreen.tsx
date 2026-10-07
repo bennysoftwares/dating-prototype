@@ -16,7 +16,7 @@ import './DiscoverScreen.css';
 export function DiscoverScreen() {
   const navigate = useNavigate();
   const toast = useToast();
-  const { status, error, view, refresh, undoPass, openExplore } = useDiscovery();
+  const { status, error, view, refresh, canRewind, rewind, openExplore } = useDiscovery();
   const { paused, incognito, setPaused } = useAccount();
 
   // Re-rank quietly whenever Discover is shown (e.g. after editing preferences).
@@ -29,15 +29,19 @@ export function DiscoverScreen() {
   const today = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
   const profileLink = (id: string) => ROUTES.discoverProfile(id);
 
-  const onUndo = async () => {
-    const restored = await undoPass();
+  const onRewind = async () => {
+    const restored = await rewind();
     if (restored) toast({ message: `${restored.profile.firstName} is back in your picks` });
   };
 
   const actions = (
     <>
-      {view?.undoablePass && (
-        <IconButton icon="undo" label={`Undo last pass${view.undoablePass.candidate ? ` (${view.undoablePass.candidate.profile.firstName})` : ''}`} onClick={() => void onUndo()} />
+      {canRewind && view?.rewindable && (
+        <IconButton
+          icon="undo"
+          label={`Rewind to ${view.rewindable.candidate?.profile.firstName ?? 'your last decision'}`}
+          onClick={() => void onRewind()}
+        />
       )}
       <IconButton icon="filter" label="Filters" onClick={() => navigate(ROUTES.filters)} />
     </>
@@ -58,7 +62,7 @@ export function DiscoverScreen() {
   }
 
   return (
-    <Screen title="Today's picks" eyebrow={today} actions={actions}>
+    <Screen title="Today's picks" eyebrow={today} actions={actions} className="screen--wide">
       {incognito && (
         <p className="discover__banner">
           <Icon name="incognito" size={18} /> Incognito is on. Only people you like can see your profile.

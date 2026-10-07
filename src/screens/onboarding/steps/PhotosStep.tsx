@@ -94,9 +94,10 @@ export function PhotosStep({ draft, update, errors }: StepProps) {
         {slots.map((photo, i) =>
           photo ? (
             <li key={photo.id} className="photo-grid__slot">
-              <button type="button" className="photo-grid__photo" onClick={() => setActiveIndex(i)} aria-label={`Photo ${i + 1}${i === 0 ? ', main photo' : ''}. Edit`}>
-                <PhotoFrame photo={photo} ratio="4 / 5" rounded="md" monogram={draft.firstName.charAt(0) || undefined} />
-                {i === 0 && <span className="photo-grid__badge">Main</span>}
+              <button type="button" className="photo-grid__photo" onClick={() => setActiveIndex(i)}>
+                <span className="visually-hidden">{`Edit photo ${i + 1}${i === 0 ? ' (main photo)' : ''}`}</span>
+                <PhotoFrame photo={photo} ratio="4 / 5" rounded="md" monogram={draft.firstName.charAt(0) || undefined} decorative />
+                {i === 0 && <span className="photo-grid__badge" aria-hidden="true">Main</span>}
                 <span className="photo-grid__index" aria-hidden="true">{i + 1}</span>
               </button>
             </li>

@@ -123,14 +123,16 @@ export function DebugScreen() {
         {toolMessage && <p className="debug__tool-result" role="status">{toolMessage}</p>}
       </Section>
 
-      <Section title="Account states, safety & dates" description="Part 5 states. Account: Active / Paused / Incognito / Photo verified / Not verified.">
+      <Section title="Account states, safety & dates" description="Plan: Free / Premium. Status: Active / Paused. Incognito. Photo / ID verified.">
         <ListGroup label="Current account state">
+          <ListRow title="Plan" trailing={user?.plan === 'premium' ? 'Premium' : 'Free'} />
           <ListRow title="Status" trailing={user?.status === 'paused' ? 'Paused' : 'Active'} />
           <ListRow title="Incognito" trailing={user?.incognito ? 'On' : 'Off'} />
           <ListRow title="Verification" trailing={`Photo: ${ownProfile?.verification?.photo ?? 'unverified'} · ID: ${ownProfile?.verification?.id ?? 'unverified'}`} />
           <ListRow title="Blocks · reports · dates" trailing={`${localDb.blocks().length} · ${localDb.reports().length} · ${localDb.dates().length}`} />
         </ListGroup>
         <div className="debug__actions">
+          <Button variant="secondary" icon="sparkle" onClick={() => runTool(() => debugTools.togglePlan())} block>Toggle plan (Free / Premium)</Button>
           <Button variant="secondary" icon="pause" onClick={() => runTool(() => debugTools.toggleAccount('paused'))} block>Toggle paused</Button>
           <Button variant="secondary" icon="incognito" onClick={() => runTool(() => debugTools.toggleAccount('incognito'))} block>Toggle incognito</Button>
           <Button variant="secondary" icon="verified" onClick={() => runTool(() => debugTools.toggleVerification('photo'))} block>Toggle photo verified</Button>

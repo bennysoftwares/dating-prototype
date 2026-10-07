@@ -26,7 +26,7 @@ export function WelcomeScreen() {
   };
 
   return (
-    <div className="welcome">
+    <main className="welcome">
       <div className="welcome__art" aria-hidden="true">
         <div className="welcome__card welcome__card--back" />
         <div className="welcome__card welcome__card--mid" />
@@ -57,8 +57,8 @@ export function WelcomeScreen() {
           <Button size="lg" block onClick={start}>Create your profile</Button>
         )}
         <Button variant="quiet" block onClick={() => void useDemo()}>Explore with the demo profile</Button>
-        <p className="welcome__note">Prototype. Everything you enter stays on this device.</p>
+        <p className="welcome__note">This is a demo. Everything you enter stays on this device.</p>
       </div>
-    </div>
+    </main>
   );
 }

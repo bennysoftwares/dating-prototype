@@ -58,8 +58,8 @@
   bottom: 6px;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(20, 14, 12, 0.6);
-  color: #fff;
+  background: var(--color-photo-badge);
+  color: var(--color-on-photo);
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
 }
@@ -72,8 +72,8 @@
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.85);
-  color: #1f1a17;
+  background: var(--color-photo-glass-strong);
+  color: var(--color-photo-ink);
   font-size: 11px;
   font-weight: var(--weight-semibold);
 }

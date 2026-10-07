@@ -48,7 +48,6 @@ export function MessageBubble({ message: m, mine, viewer, other, showTime, onPla
           <PhotoFrame photo={{ id: m.id, tone: m.photo?.tone ?? ['#d8cfc5', '#8b8178'], alt: `Photo from ${author}` }} ratio="4 / 5" rounded="lg">
             <span className="msg__photo-icon" aria-hidden="true"><Icon name="image" size={28} /></span>
           </PhotoFrame>
-          <figcaption>Photo · prototype placeholder</figcaption>
         </figure>
       )}
 

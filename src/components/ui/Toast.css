@@ -35,7 +35,7 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.toast__action:hover { background: rgba(255, 255, 255, 0.12); }
+.toast__action:hover { background: var(--color-photo-glass); }
 @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (min-width: 900px) {
   .toast-region { left: var(--rail-width); bottom: var(--toast-bottom, calc(var(--space-6) + var(--safe-bottom))); }

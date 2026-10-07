@@ -108,7 +108,7 @@ export function LocationStep({ draft, update, errors }: StepProps) {
           error={errors.cityId}
         />
       ) : (
-        <p className="step-note">No cities match “{query}”. The prototype includes a short list of cities for now.</p>
+        <p className="step-note">No cities match “{query}”. This demo includes a short list of cities.</p>
       )}
       <p className="step-note">
         <Icon name="shield" size={16} /> We only ever show approximate distance, like “8 km away”. Never your exact location.

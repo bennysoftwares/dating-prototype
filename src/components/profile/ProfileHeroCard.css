@@ -2,7 +2,7 @@
 .hero-card__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 45%, rgba(20, 14, 12, 0.62) 100%);
+  background: linear-gradient(180deg, transparent 45%, var(--color-photo-scrim) 100%);
   pointer-events: none;
 }
 .hero-card__info {
@@ -14,7 +14,7 @@
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-6);
-  color: #fff;
+  color: var(--color-on-photo);
 }
 .hero-card__name {
   display: flex;
@@ -42,12 +42,12 @@
   margin-top: var(--space-1);
   padding: 6px var(--space-3);
   border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--color-photo-glass);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
 }
 .hero-card--has-action .hero-card__info { padding-right: calc(var(--space-6) + 56px); }
-.hero-card__verified { display: inline-flex; align-self: center; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
-.hero-card__verified svg { color: #8fd0ff; }
+.hero-card__verified { display: inline-flex; align-self: center; color: var(--color-on-photo); filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35)); }
+.hero-card__verified svg { color: var(--color-verified); }

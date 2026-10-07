@@ -30,7 +30,7 @@
   font-family: var(--font-display);
   font-size: clamp(2rem, 28cqw, 9rem);
   font-weight: var(--weight-regular);
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--color-on-photo-muted);
   letter-spacing: var(--tracking-tight);
   line-height: 1;
 }

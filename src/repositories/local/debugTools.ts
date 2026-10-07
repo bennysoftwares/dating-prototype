@@ -164,6 +164,13 @@ export const debugTools = {
     return !user.incognito ? 'Incognito on.' : 'Incognito off.';
   },
 
+  togglePlan(): string {
+    const { user } = context();
+    const plan = user.plan === 'premium' ? 'free' : 'premium';
+    localDb.writeUser({ ...user, plan });
+    return plan === 'premium' ? 'Plan: Premium (one-step rewind available).' : 'Plan: Free (no rewind).';
+  },
+
   toggleVerification(kind: 'photo' | 'id'): string {
     const { me } = context();
     const current = me.verification?.[kind] === 'verified';

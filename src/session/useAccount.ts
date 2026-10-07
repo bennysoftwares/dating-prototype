@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { planOf } from '../domain/entitlements';
 import type { VerificationState } from '../domain/types';
 import { useRepositories } from '../repositories/RepositoryContext';
 import { useSession } from './SessionProvider';
@@ -21,5 +22,5 @@ export function useAccount() {
 
   const setVerification = useCallback((kind: 'photo' | 'id', s: VerificationState) => account.setVerification(kind, s), [account]);
 
-  return { user, paused: user?.status === 'paused', incognito: Boolean(user?.incognito), setPaused, setIncognito, setVerification };
+  return { user, plan: planOf(user), paused: user?.status === 'paused', incognito: Boolean(user?.incognito), setPaused, setIncognito, setVerification };
 }

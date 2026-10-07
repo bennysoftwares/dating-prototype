@@ -3,6 +3,21 @@ import type { Block, DailyPicks, DateFeedback, DatePlan, Like, Match, Message, P
 import { storage } from '../../storage/storage';
 import { STORAGE_KEYS } from '../../storage/keys';
 import { sleep } from '../../utils/sleep';
+import {
+  isBlock,
+  isDailyPicks,
+  isDatePlan,
+  isFeedback,
+  isLike,
+  isMatch,
+  isMessage,
+  isPass,
+  isPreferences,
+  isPrivacy,
+  isProfile,
+  isReport,
+  isUser,
+} from './guards';
 
 /**
  * Bump when the seed or stored shapes change. Old data is discarded and
@@ -20,8 +35,11 @@ interface DbMeta {
   seededAt: string;
 }
 
-const isArray = (v: unknown): v is unknown[] => Array.isArray(v);
-const isObject = (v: unknown): v is object => typeof v === 'object' && v !== null;
+/** A stored list with every malformed record dropped (see guards.ts). */
+function list<T>(key: string, guard: (v: unknown) => v is T): T[] {
+  const raw = storage.get<unknown[]>(key, [], { validate: (v): v is unknown[] => Array.isArray(v) });
+  return raw.filter(guard);
+}
 
 const K = STORAGE_KEYS;
 
@@ -164,45 +182,45 @@ export const localDb = {
   },
 
   user(): User | null {
-    return storage.get<User | null>(K.dbUser.key, null, { validate: (v): v is User => isObject(v) });
+    return storage.get<User | null>(K.dbUser.key, null, { validate: (v): v is User => isUser(v) });
   },
   preferences(): Preferences | null {
-    return storage.get<Preferences | null>(K.dbPreferences.key, null, { validate: (v): v is Preferences => isObject(v) });
+    return storage.get<Preferences | null>(K.dbPreferences.key, null, { validate: (v): v is Preferences => isPreferences(v) });
   },
   profiles(): Profile[] {
-    return storage.get<Profile[]>(K.dbProfiles.key, [], { validate: (v): v is Profile[] => isArray(v) });
+    return list(K.dbProfiles.key, isProfile);
   },
   matches(): Match[] {
-    return storage.get<Match[]>(K.dbMatches.key, [], { validate: (v): v is Match[] => isArray(v) });
+    return list(K.dbMatches.key, isMatch);
   },
   messages(): Message[] {
-    return storage.get<Message[]>(K.dbMessages.key, [], { validate: (v): v is Message[] => isArray(v) });
+    return list(K.dbMessages.key, isMessage);
   },
   likes(): Like[] {
-    return storage.get<Like[]>(K.dbLikes.key, [], { validate: (v): v is Like[] => isArray(v) });
+    return list(K.dbLikes.key, isLike);
   },
   passes(): Pass[] {
-    return storage.get<Pass[]>(K.dbPasses.key, [], { validate: (v): v is Pass[] => isArray(v) });
+    return list(K.dbPasses.key, isPass);
   },
   dailyPicks(): DailyPicks | null {
     return storage.get<DailyPicks | null>(K.dbDailyPicks.key, null, {
-      validate: (v): v is DailyPicks | null => v === null || (isObject(v) && Array.isArray((v as DailyPicks).profileIds)),
+      validate: (v): v is DailyPicks | null => v === null || isDailyPicks(v),
     });
   },
   blocks(): Block[] {
-    return storage.get<Block[]>(K.dbBlocks.key, [], { validate: (v): v is Block[] => isArray(v) });
+    return list(K.dbBlocks.key, isBlock);
   },
   reports(): Report[] {
-    return storage.get<Report[]>(K.dbReports.key, [], { validate: (v): v is Report[] => isArray(v) });
+    return list(K.dbReports.key, isReport);
   },
   dates(): DatePlan[] {
-    return storage.get<DatePlan[]>(K.dbDates.key, [], { validate: (v): v is DatePlan[] => isArray(v) });
+    return list(K.dbDates.key, isDatePlan);
   },
   dateFeedback(): DateFeedback[] {
-    return storage.get<DateFeedback[]>(K.dbDateFeedback.key, [], { validate: (v): v is DateFeedback[] => isArray(v) });
+    return list(K.dbDateFeedback.key, isFeedback);
   },
   privacy(): PrivacySettings {
-    return storage.get<PrivacySettings>(K.dbPrivacy.key, { hideFromContacts: false }, { validate: (v): v is PrivacySettings => isObject(v) });
+    return storage.get<PrivacySettings>(K.dbPrivacy.key, { hideFromContacts: false }, { validate: (v): v is PrivacySettings => isPrivacy(v) });
   },
   /** User ids the current user has blocked. Blocked people disappear everywhere. */
   blockedUserIds(): Set<string> {

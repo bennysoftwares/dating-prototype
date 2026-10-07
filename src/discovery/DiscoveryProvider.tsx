@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import type { DailyPicks, ID, Like, LikeTarget, Match, Pass, Preferences, Profile } from '../domain/types';
+import { can } from '../domain/entitlements';
+import type { DailyPicks, DiscoveryAction, ID, Like, LikeTarget, Match, Pass, Preferences, Profile } from '../domain/types';
 import { planDailyPicks, preferenceFingerprint, rankCandidates, todayKey, type RankedCandidate, type RankingResult } from '../recommendation';
 import { useRepositories } from '../repositories/RepositoryContext';
+import { useSession } from '../session/SessionProvider';
 
 interface DiscoveryData {
   viewer: Profile;
@@ -21,7 +23,8 @@ export interface DiscoveryView {
   exploreOpened: boolean;
   /** Eligible people beyond today's set, best first (only meaningful once Explore more is opened). */
   explore: RankedCandidate[];
-  undoablePass: { pass: Pass; candidate: RankedCandidate | undefined } | null;
+  /** The one previous action that can be rewound (Premium only). */
+  rewindable: { action: DiscoveryAction; candidate: RankedCandidate | undefined } | null;
 }
 
 type Status = 'loading' | 'ready' | 'error';
@@ -40,19 +43,30 @@ interface DiscoveryContextValue {
   /** Resolves with the new match when the like was mutual. */
   like: (candidate: RankedCandidate, target: LikeTarget, comment?: string) => Promise<Match | null>;
   pass: (candidate: RankedCandidate) => Promise<void>;
-  undoPass: () => Promise<RankedCandidate | undefined>;
+  /** Premium: one-step rewind of the last pass or like. */
+  canRewind: boolean;
+  rewind: () => Promise<RankedCandidate | undefined>;
   openExplore: () => Promise<void>;
 }
 
 const DiscoveryContext = createContext<DiscoveryContextValue | null>(null);
 
+/** The rewind buffer, reading the Part 3 `undoablePassId` field for older stored data. */
+function lastActionOf(daily: DailyPicks, passes: Pass[]): DiscoveryAction | null {
+  if (daily.lastAction) return daily.lastAction;
+  const legacy = daily.undoablePassId ? passes.find((p) => p.id === daily.undoablePassId) : undefined;
+  return legacy ? { kind: 'pass', recordId: legacy.id, profileId: legacy.toProfileId } : null;
+}
+
 /**
  * Discovery state shared by the picks list and the profile screen: ranking,
- * today's curated set, likes, passes and the single-step undo.
+ * today's curated set, likes, passes and the one-step rewind buffer (Premium).
  * Mutations are optimistic and persisted through the repositories.
  */
 export function DiscoveryProvider({ children }: { children: ReactNode }) {
   const repos = useRepositories();
+  const { state: session } = useSession();
+  const user = session.status === 'ready' ? session.user : null;
   const [status, setStatus] = useState<Status>('loading');
   const [error, setError] = useState<Error | null>(null);
   const [data, setData] = useState<DiscoveryData | null>(null);
@@ -127,14 +141,15 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     const byId = new Map(data.ranking.eligible.map((r) => [r.profile.id, r]));
     const dailyIds = new Set(data.daily.profileIds);
     const inDaily = data.daily.profileIds.map((id) => byId.get(id)).filter((r): r is RankedCandidate => Boolean(r));
-    const undoable = data.daily.undoablePassId ? data.passes.find((p) => p.id === data.daily.undoablePassId) : undefined;
+    const action = lastActionOf(data.daily, data.passes);
+    const stillThere = action && (action.kind === 'pass' ? data.passes.some((p) => p.id === action.recordId) : data.likes.some((l) => l.id === action.recordId));
     return {
       picks: inDaily.filter((r) => !decided.has(r.profile.id)),
       dailyTotal: inDaily.length,
       dailySeen: inDaily.filter((r) => decided.has(r.profile.id)).length,
       exploreOpened: data.daily.exploreOpened,
       explore: data.ranking.eligible.filter((r) => !dailyIds.has(r.profile.id) && !decided.has(r.profile.id)),
-      undoablePass: undoable ? { pass: undoable, candidate: byId.get(undoable.toProfileId) } : null,
+      rewindable: action && stillThere ? { action, candidate: byId.get(action.profileId) } : null,
     };
   }, [data]);
 
@@ -190,13 +205,19 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       let match: Match | null = null;
       await mutate(
         (d) => {
-          daily = { ...d.daily, undoablePassId: null };
+          daily = { ...d.daily, undoablePassId: null, lastAction: null };
           return { ...d, likes: [...d.likes.filter((l) => l.toProfileId !== candidate.profile.id), optimistic], daily };
         },
         async () => {
           const saved = await repos.discovery.sendLike({ toProfileId: candidate.profile.id, toUserId: candidate.profile.userId, target, comment });
           match = saved.match;
-          if (daily) await repos.discovery.saveDailyPicks(daily);
+          // A like that made a match can't be rewound; otherwise it becomes the rewind buffer.
+          if (daily && !saved.match) daily = { ...(daily as DailyPicks), lastAction: { kind: 'like', recordId: saved.like.id, profileId: candidate.profile.id } };
+          if (daily) {
+            await repos.discovery.saveDailyPicks(daily);
+            const saveDaily = daily;
+            setData((d) => d && { ...d, daily: saveDaily });
+          }
           setData((d) => d && { ...d, likes: d.likes.map((l) => (l.id === optimistic.id ? saved.like : l)) });
         },
       );
@@ -210,7 +231,7 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
       const saved = await repos.discovery.pass(candidate.profile.id);
       const current = dataRef.current;
       if (!current) return;
-      const daily = { ...current.daily, undoablePassId: saved.id };
+      const daily: DailyPicks = { ...current.daily, undoablePassId: null, lastAction: { kind: 'pass', recordId: saved.id, profileId: candidate.profile.id } };
       await mutate(
         (d) => ({ ...d, passes: [...d.passes.filter((p) => p.toProfileId !== candidate.profile.id), saved], daily }),
         async () => {
@@ -221,21 +242,29 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
     [mutate, repos, guard],
   );
 
-  const undoPass = useCallback<DiscoveryContextValue['undoPass']>(() => guard(async () => {
+  const canRewind = can(user, 'rewind');
+
+  /** One step only: the buffer is cleared after rewinding, so you can't go back further. */
+  const rewind = useCallback<DiscoveryContextValue['rewind']>(() => guard(async () => {
     const current = dataRef.current;
-    const passId = current?.daily.undoablePassId;
-    const target = current?.passes.find((p) => p.id === passId);
-    if (!current || !passId || !target) return undefined;
-    const daily = { ...current.daily, undoablePassId: null };
+    const action = current && lastActionOf(current.daily, current.passes);
+    if (!current || !action || !canRewind) return undefined;
+    const daily: DailyPicks = { ...current.daily, undoablePassId: null, lastAction: null };
     await mutate(
-      (d) => ({ ...d, passes: d.passes.filter((p) => p.id !== passId), daily }),
+      (d) => ({
+        ...d,
+        passes: action.kind === 'pass' ? d.passes.filter((p) => p.id !== action.recordId) : d.passes,
+        likes: action.kind === 'like' ? d.likes.filter((l) => l.id !== action.recordId) : d.likes,
+        daily,
+      }),
       async () => {
-        await repos.discovery.undoPass(passId);
+        if (action.kind === 'pass') await repos.discovery.undoPass(action.recordId);
+        else await repos.discovery.undoLike(action.recordId);
         await repos.discovery.saveDailyPicks(daily);
       },
     );
-    return current.ranking.eligible.find((r) => r.profile.id === target.toProfileId);
-  }), [mutate, repos, guard]);
+    return current.ranking.eligible.find((r) => r.profile.id === action.profileId);
+  }), [mutate, repos, guard, canRewind]);
 
   const openExplore = useCallback(() => guard(async () => {
     const current = dataRef.current;
@@ -247,8 +276,8 @@ export function DiscoveryProvider({ children }: { children: ReactNode }) {
   }), [mutate, repos, guard]);
 
   const value = useMemo<DiscoveryContextValue>(
-    () => ({ status, error, data, view, refresh, getCandidate, decisionFor, nextAfter, like, pass, undoPass, openExplore }),
-    [status, error, data, view, refresh, getCandidate, decisionFor, nextAfter, like, pass, undoPass, openExplore],
+    () => ({ status, error, data, view, refresh, getCandidate, decisionFor, nextAfter, like, pass, canRewind, rewind, openExplore }),
+    [status, error, data, view, refresh, getCandidate, decisionFor, nextAfter, like, pass, canRewind, rewind, openExplore],
   );
   return <DiscoveryContext.Provider value={value}>{children}</DiscoveryContext.Provider>;
 }
