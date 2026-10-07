@@ -44,6 +44,7 @@ export function DebugScreen() {
   };
 
   const user = localDb.user();
+  const ownProfile = localDb.profiles().find((p) => p.id === user?.profileId);
   const draftExists = storage.raw(STORAGE_KEYS.onboardingDraft.key) !== null;
 
   /** Data actions change the account state, so reload into the right place. */
@@ -120,6 +121,26 @@ export function DebugScreen() {
           <Button variant="quiet" icon="refresh" onClick={() => runTool(() => debugTools.resetConversations())} block>Reset likes received, matches & messages</Button>
         </div>
         {toolMessage && <p className="debug__tool-result" role="status">{toolMessage}</p>}
+      </Section>
+
+      <Section title="Account states, safety & dates" description="Part 5 states. Account: Active / Paused / Incognito / Photo verified / Not verified.">
+        <ListGroup label="Current account state">
+          <ListRow title="Status" trailing={user?.status === 'paused' ? 'Paused' : 'Active'} />
+          <ListRow title="Incognito" trailing={user?.incognito ? 'On' : 'Off'} />
+          <ListRow title="Verification" trailing={`Photo: ${ownProfile?.verification?.photo ?? 'unverified'} · ID: ${ownProfile?.verification?.id ?? 'unverified'}`} />
+          <ListRow title="Blocks · reports · dates" trailing={`${localDb.blocks().length} · ${localDb.reports().length} · ${localDb.dates().length}`} />
+        </ListGroup>
+        <div className="debug__actions">
+          <Button variant="secondary" icon="pause" onClick={() => runTool(() => debugTools.toggleAccount('paused'))} block>Toggle paused</Button>
+          <Button variant="secondary" icon="incognito" onClick={() => runTool(() => debugTools.toggleAccount('incognito'))} block>Toggle incognito</Button>
+          <Button variant="secondary" icon="verified" onClick={() => runTool(() => debugTools.toggleVerification('photo'))} block>Toggle photo verified</Button>
+          <Button variant="secondary" icon="verified" onClick={() => runTool(() => debugTools.toggleVerification('id'))} block>Toggle ID verified</Button>
+          <Button variant="secondary" icon="calendar" onClick={() => runTool(() => debugTools.theyProposeDate())} block>Match suggests a date (latest chat)</Button>
+          <Button variant="secondary" icon="check" onClick={() => runTool(() => debugTools.theyAcceptDate())} block>Match accepts my date suggestion</Button>
+          <Button variant="secondary" icon="calendar" onClick={() => runTool(() => debugTools.completeDate())} block>Simulate completed date</Button>
+          <Button variant="quiet" icon="shield" onClick={() => runTool(() => debugTools.unblockAll())} block>Unblock everyone</Button>
+          <Button variant="quiet" icon="flag" onClick={() => runTool(() => debugTools.clearReports())} block>Clear reports</Button>
+        </div>
       </Section>
 
       <Section title="Recommendations" description="Scores are for development only. People never see numbers.">

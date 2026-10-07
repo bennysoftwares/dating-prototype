@@ -3,6 +3,7 @@ import { ChipSelect, ChoiceList, RangeField, TextField, VisibilityToggle } from 
 import {
   CHILDREN_OPTIONS,
   DRINKING_OPTIONS,
+  EDUCATION_LEVEL_OPTIONS,
   LANGUAGE_OPTIONS,
   POLITICS_OPTIONS,
   PROFILE_LIMITS as L,
@@ -73,6 +74,14 @@ export function WorkStep({ draft, update, errors }: StepProps) {
           error={errors.education}
           maxLength={L.educationMax}
           enterKeyHint="done"
+        />
+        <ChoiceList
+          legend="Highest level of education (optional)"
+          options={EDUCATION_LEVEL_OPTIONS}
+          value={draft.educationLevel}
+          onChange={(educationLevel) => update({ educationLevel })}
+          allowDeselect
+          onClear={() => update({ educationLevel: null })}
         />
         <Visibility draft={draft} update={update} field="education" label="Education" />
       </div>

@@ -4,7 +4,10 @@ import { storage } from '../../storage/storage';
 import { STORAGE_KEYS as K } from '../../storage/keys';
 import { createId } from '../../utils/id';
 import { StorageFullError, type Repositories } from '../types';
+import { createLocalAccountRepository } from './accountRepo';
+import { createLocalDatesRepository } from './datesRepo';
 import { localDb, withLatency } from './localDb';
+import { createLocalSafetyRepository } from './safetyRepo';
 
 export function createLocalRepositories(): Repositories {
   localDb.ensureSeeded();
@@ -83,7 +86,11 @@ export function createLocalRepositories(): Repositories {
           ensure(localDb.writeOwnProfile(saved));
           return saved;
         }),
-      listCandidates: () => withLatency(() => localDb.profiles().filter((p) => p.userId !== currentUser().id)),
+      listCandidates: () =>
+        withLatency(() => {
+          const blocked = localDb.blockedUserIds();
+          return localDb.profiles().filter((p) => p.userId !== currentUser().id && !blocked.has(p.userId));
+        }),
     },
     discovery: {
       getState: () =>
@@ -136,7 +143,7 @@ export function createLocalRepositories(): Repositories {
         withLatency(() =>
           localDb
             .likes()
-            .filter((l) => l.toUserId === currentUser().id)
+            .filter((l) => l.toUserId === currentUser().id && !localDb.blockedUserIds().has(l.fromUserId))
             .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
         ),
       respond: (likeId, response) =>
@@ -166,17 +173,26 @@ export function createLocalRepositories(): Repositories {
           return createMatch(theirs, mine);
         }),
     },
+    account: createLocalAccountRepository(),
+    safety: createLocalSafetyRepository(),
+    dates: createLocalDatesRepository(),
     matches: {
       listMatches: () =>
         withLatency(() =>
           localDb
             .matches()
-            .filter((m) => m.userIds.includes(currentUser().id))
+            .filter((m) => m.userIds.includes(currentUser().id) && !m.userIds.some((id) => localDb.blockedUserIds().has(id)))
             .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt)),
         ),
       listAllMessages: () =>
         withLatency(() => {
-          const mine = new Set(localDb.matches().filter((m) => m.userIds.includes(currentUser().id)).map((m) => m.id));
+          const blocked = localDb.blockedUserIds();
+          const mine = new Set(
+            localDb
+              .matches()
+              .filter((m) => m.userIds.includes(currentUser().id) && !m.userIds.some((id) => blocked.has(id)))
+              .map((m) => m.id),
+          );
           return localDb.messages().filter((m) => mine.has(m.matchId)).sort((a, b) => a.sentAt.localeCompare(b.sentAt));
         }),
       sendMessage: (matchId, input) =>
@@ -198,7 +214,7 @@ export function createLocalRepositories(): Repositories {
         withLatency(() => updateMatch(matchId, (m) => ({ ...m, archivedAt: archived ? new Date().toISOString() : null }))),
       keepForLater: (matchId) => withLatency(() => updateMatch(matchId, (m) => ({ ...m, keptForLaterAt: new Date().toISOString() }))),
       subscribe: (onChange) => {
-        const watched = new Set([K.dbMatches.key, K.dbMessages.key, K.dbLikes.key, K.dbPasses.key, '*']);
+        const watched = new Set([K.dbMatches.key, K.dbMessages.key, K.dbLikes.key, K.dbPasses.key, K.dbBlocks.key, K.dbDates.key, K.dbDateFeedback.key, K.dbUser.key, '*']);
         return storage.subscribe((key) => watched.has(key) && onChange());
       },
       listMessages: (matchId) =>

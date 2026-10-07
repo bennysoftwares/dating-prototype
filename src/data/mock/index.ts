@@ -52,3 +52,4 @@ export function createSeed(now = Date.now()) {
 export type Seed = ReturnType<typeof createSeed>;
 
 export { createMockConnections } from './connections';
+export { createMockDates, nextWeekday } from './dates';

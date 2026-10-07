@@ -1,8 +1,17 @@
 import { DATING_INTENT_INFO } from '../domain/intent';
-import { GENDER_OPTIONS } from '../domain/profileOptions';
+import { EDUCATION_LEVEL_OPTIONS, GENDER_OPTIONS } from '../domain/profileOptions';
 import type { FilterRule, Preferences, Profile } from '../domain/types';
 import { profileAge } from '../utils/profileFormat';
-import { visibleChildren, visibleDrinking, visibleReligion, visibleSmoking, visibleWantsChildren } from './fields';
+import {
+  visibleChildren,
+  visibleDrinking,
+  visibleEducationLevel,
+  visibleHeight,
+  visiblePolitics,
+  visibleReligion,
+  visibleSmoking,
+  visibleWantsChildren,
+} from './fields';
 import type { HardCheck, HardFilterResult } from './types';
 
 const AGE_OPEN_ENDED = 80;
@@ -19,6 +28,18 @@ function ruleCheck<T extends string>(
   if (value === undefined) return { id, label, passed: false, applied: true, detail: 'Not shared on their profile, so it can’t be confirmed' };
   const ok = rule.values.includes(value);
   return { id, label, passed: ok, applied: true, detail: ok ? `${describe(value)} is accepted` : `${describe(value)} is outside your dealbreaker` };
+}
+
+const EDUCATION_LABEL = Object.fromEntries(EDUCATION_LEVEL_OPTIONS.map((o) => [o.value, o.label])) as Record<string, string>;
+
+function heightCheck(prefs: Preferences, height: number | undefined): HardCheck {
+  const rule = prefs.height;
+  const base = { id: 'height', label: 'Height' };
+  if (!rule) return { ...base, passed: true, applied: false, detail: 'No preference set' };
+  if (rule.mode !== 'dealbreaker') return { ...base, passed: true, applied: false, detail: 'Preference only, affects ranking' };
+  if (height === undefined) return { ...base, passed: false, applied: true, detail: 'Not shared on their profile, so it can’t be confirmed' };
+  const ok = height >= rule.minCm && height <= rule.maxCm;
+  return { ...base, passed: ok, applied: true, detail: `${height} cm, range ${rule.minCm}–${rule.maxCm} cm` };
 }
 
 /**
@@ -59,6 +80,9 @@ export function evaluateHardFilters(candidate: Profile, prefs: Preferences, dist
     ruleCheck('children', 'Has children', prefs.children, visibleChildren(candidate)),
     ruleCheck('wantsChildren', 'Wants children', prefs.wantsChildren, visibleWantsChildren(candidate)),
     ruleCheck('religion', 'Religion', prefs.religion, visibleReligion(candidate)),
+    ruleCheck('politics', 'Politics', prefs.politics ?? null, visiblePolitics(candidate)),
+    ruleCheck('education', 'Education', prefs.education ?? null, visibleEducationLevel(candidate), (v) => EDUCATION_LABEL[v] ?? v),
+    heightCheck(prefs, visibleHeight(candidate)),
   ];
 
   return { passed: checks.every((c) => c.passed), checks };

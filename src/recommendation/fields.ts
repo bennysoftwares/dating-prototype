@@ -17,3 +17,5 @@ export const visibleChildren = (p: Profile) => visibleValue(p, 'children', 'chil
 export const visibleWantsChildren = (p: Profile) => visibleValue(p, 'wantsChildren', 'children');
 export const visibleReligion = (p: Profile) => visibleValue(p, 'religion', 'religion');
 export const visiblePolitics = (p: Profile) => visibleValue(p, 'politics', 'politics');
+export const visibleHeight = (p: Profile) => visibleValue(p, 'heightCm', 'height');
+export const visibleEducationLevel = (p: Profile) => visibleValue(p, 'educationLevel', 'education');

@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router';
 import { ROUTES } from '../../app/navigation';
 import { LikedSnapshot } from '../../components/connections/LikedSnapshot';
 import { ProfileView } from '../../components/profile/ProfileView';
+import { SafetySheet } from '../../components/safety/SafetySheet';
 import { Button, EmptyState, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
 import { useConnections } from '../../connections/ConnectionsProvider';
 import { describeSnapshot } from '../../domain/matching';
 import { buildCompatibility } from '../../recommendation/compatibility';
-import { approxDistanceKm } from '../../utils/profileFormat';
+import { approxDistanceKm, distanceLabel } from '../../utils/profileFormat';
+import { useSticky } from '../../hooks/useSticky';
 import { useBack } from '../onboarding/useStepNavigation';
 import '../discover/DiscoverProfileScreen.css';
 import './LikesScreen.css';
@@ -20,7 +22,8 @@ export function LikeProfileScreen() {
   const toast = useToast();
   const { status, viewer, getIncoming, acceptLike, passLike } = useConnections();
   const [busy, setBusy] = useState(false);
-  const item = getIncoming(likeId);
+  const [safetyOpen, setSafetyOpen] = useState(false);
+  const item = useSticky(getIncoming(likeId), safetyOpen);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
@@ -80,7 +83,7 @@ export function LikeProfileScreen() {
           <h1>{from.firstName}</h1>
           <p>Liked you</p>
         </div>
-        <span className="dprofile__spacer" />
+        <IconButton icon="more" label={`More options for ${from.firstName}`} onClick={() => setSafetyOpen(true)} />
       </header>
       <main className="dprofile__body dprofile__body--stack">
         <section className="like-card like-card--banner" aria-label="What they liked">
@@ -92,10 +95,11 @@ export function LikeProfileScreen() {
         </section>
         <ProfileView
           profile={from}
-          distanceLabel={`${approxDistanceKm(viewer.location, from.location)} km away`}
+          distanceLabel={distanceLabel(from, approxDistanceKm(viewer.location, from.location))}
           compatibility={buildCompatibility(viewer, from)}
         />
       </main>
+      <SafetySheet person={from} open={safetyOpen} onClose={() => setSafetyOpen(false)} onDone={() => navigate(ROUTES.likes, { replace: true })} />
       <footer className="dprofile__actions">
         <Button variant="secondary" size="lg" icon="close" onClick={() => void onPass()} disabled={busy} className="dprofile__pass">
           Pass

@@ -13,17 +13,19 @@ import './SessionGate.css';
 export function SessionGate({ mode, children }: { mode: 'member' | 'guest'; children?: ReactNode }) {
   const { state, refresh } = useSession();
 
-  if (state.status === 'loading') {
-    return (
-      <div className="splash" role="status" aria-label="Loading">
-        <LogoMark size={48} />
-      </div>
-    );
-  }
+  if (state.status === 'loading') return <Splash />;
   if (state.status === 'error') return <ErrorState message={state.error.message} onRetry={() => void refresh()} />;
 
   const onboarded = state.user.onboardingComplete;
   if (mode === 'member' && !onboarded) return <Navigate to={ONBOARDING_ROUTES.welcome} replace />;
   if (mode === 'guest' && onboarded) return <Navigate to={ROUTES.discover} replace />;
   return children ?? <Outlet />;
+}
+
+export function Splash() {
+  return (
+    <div className="splash" role="status" aria-label="Loading">
+      <LogoMark size={48} />
+    </div>
+  );
 }

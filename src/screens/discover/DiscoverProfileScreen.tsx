@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { ROUTES } from '../../app/navigation';
 import { LikeSheet } from '../../components/discovery/LikeSheet';
+import { SafetySheet } from '../../components/safety/SafetySheet';
 import { ProfileView } from '../../components/profile/ProfileView';
 import { Button, EmptyState, ErrorState, Icon, IconButton, LoadingRegion, Skeleton, useToast } from '../../components/ui';
 import { useDiscovery } from '../../discovery/DiscoveryProvider';
 import type { LikeTarget } from '../../domain/types';
+import { distanceLabel } from '../../utils/profileFormat';
+import { useSticky } from '../../hooks/useSticky';
 import { useBack } from '../onboarding/useStepNavigation';
 import './DiscoverProfileScreen.css';
 
@@ -23,7 +26,8 @@ export function DiscoverProfileScreen() {
   const [likeTarget, setLikeTarget] = useState<LikeTarget | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const candidate = getCandidate(profileId);
+  const [safetyOpen, setSafetyOpen] = useState(false);
+  const candidate = useSticky(getCandidate(profileId), safetyOpen);
   const decision = decisionFor(profileId);
 
   // Each profile starts at the top; keep toasts above the action bar.
@@ -111,13 +115,13 @@ export function DiscoverProfileScreen() {
           <h1>{name}</h1>
           {position >= 0 && <p>{queue.length - position - 1 === 0 ? 'Last one for now' : `${queue.length - position - 1} more after this`}</p>}
         </div>
-        <span className="dprofile__spacer" />
+        <IconButton icon="more" label={`More options for ${name}`} onClick={() => setSafetyOpen(true)} />
       </header>
 
       <main className="dprofile__body">
         <ProfileView
           profile={candidate.profile}
-          distanceLabel={`${candidate.distanceKm} km away`}
+          distanceLabel={distanceLabel(candidate.profile, candidate.distanceKm)}
           compatibility={candidate.compatibility}
           onLike={decision ? undefined : setLikeTarget}
           likedTarget={decision?.kind === 'like' ? decision.like.target : undefined}
@@ -144,6 +148,16 @@ export function DiscoverProfileScreen() {
       </footer>
 
       <LikeSheet profile={candidate.profile} target={likeTarget} onClose={() => setLikeTarget(null)} onSend={onSend} />
+      <SafetySheet
+        person={candidate.profile}
+        open={safetyOpen}
+        onClose={() => setSafetyOpen(false)}
+        onDone={() => {
+          // After a report, block or unmatch, move on rather than keep showing this person.
+          goNext();
+          void discovery.refresh();
+        }}
+      />
     </div>
   );
 }

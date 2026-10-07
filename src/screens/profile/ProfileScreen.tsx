@@ -1,30 +1,25 @@
 import { useRef } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { ROUTES } from '../../app/navigation';
 import { Screen, Section } from '../../components/layout';
 import { ProfileHeroCard } from '../../components/profile/ProfileHeroCard';
-import { Button, ErrorState, ListGroup, ListRow, LoadingRegion, SegmentedControl, Skeleton } from '../../components/ui';
+import { Button, ErrorState, Icon, IconButton, ListGroup, ListRow, LoadingRegion, Skeleton } from '../../components/ui';
 import { brand } from '../../config/brand';
 import { getInterest } from '../../domain/interest';
 import { useAsync } from '../../hooks/useAsync';
 import { useRepositories } from '../../repositories/RepositoryContext';
-import { useTheme, type ThemePreference } from '../../theme/ThemeProvider';
+import { useAccount } from '../../session/useAccount';
 import { PROFILE_LIMITS } from '../../domain/profileOptions';
 import { intentLabel } from '../../utils/profileFormat';
 import './ProfileScreen.css';
 
-const THEME_OPTIONS: { value: ThemePreference; label: string; icon: 'device' | 'sun' | 'moon' }[] = [
-  { value: 'system', label: 'System', icon: 'device' },
-  { value: 'light', label: 'Light', icon: 'sun' },
-  { value: 'dark', label: 'Dark', icon: 'moon' },
-];
 
 /** Tap the version line this many times to open the hidden developer panel. */
 const DEBUG_TAPS = 5;
 
 export function ProfileScreen() {
   const { profiles } = useRepositories();
-  const { preference, setPreference } = useTheme();
+  const { paused, incognito } = useAccount();
   const navigate = useNavigate();
   const taps = useRef({ count: 0, last: 0 });
 
@@ -43,7 +38,7 @@ export function ProfileScreen() {
   };
 
   return (
-    <Screen title="Profile">
+    <Screen title="Profile" actions={<IconButton icon="settings" label="Settings" onClick={() => navigate(ROUTES.settings)} />}>
       {state.status === 'loading' && (
         <LoadingRegion label="Loading your profile">
           <Skeleton ratio="4 / 5" className="profile__hero-skeleton" />
@@ -55,6 +50,13 @@ export function ProfileScreen() {
       {state.status === 'success' && state.data && (
         <>
           <ProfileHeroCard profile={state.data} as="div" />
+          {(paused || incognito || state.data.verification?.photo === 'verified') && (
+            <ul className="profile__status" role="list" aria-label="Account status">
+              {paused && <li><Link to={ROUTES.privacy} className="profile__status-chip"><Icon name="pause" size={16} /> Paused</Link></li>}
+              {incognito && <li><Link to={ROUTES.privacy} className="profile__status-chip"><Icon name="incognito" size={16} /> Incognito</Link></li>}
+              {state.data.verification?.photo === 'verified' && <li><Link to={ROUTES.verification} className="profile__status-chip profile__status-chip--ok"><Icon name="verified" size={16} /> Photo verified</Link></li>}
+            </ul>
+          )}
           <div className="profile__actions">
             <Button icon="edit" size="lg" block onClick={() => navigate(ROUTES.profileEdit)}>Edit profile</Button>
             <Button icon="eye" size="lg" variant="secondary" block onClick={() => navigate(ROUTES.profilePreview)}>Preview</Button>
@@ -70,8 +72,13 @@ export function ProfileScreen() {
         </>
       )}
 
-      <Section title="Appearance">
-        <SegmentedControl legend="Theme" value={preference} options={THEME_OPTIONS} onChange={setPreference} />
+      <Section title="More">
+        <ListGroup label="More">
+          <ListRow icon="settings" title="Settings" subtitle="Privacy, safety, filters, appearance" to={ROUTES.settings} chevron />
+          {state.status === 'success' && state.data?.verification?.photo !== 'verified' && (
+            <ListRow icon="verified" title="Verify your photos" subtitle="Show people your photos are really you" to={ROUTES.verification} chevron />
+          )}
+        </ListGroup>
       </Section>
 
       <footer className="profile__footer">

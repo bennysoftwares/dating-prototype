@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import type { RankedCandidate } from '../../recommendation';
+import { distanceLabel } from '../../utils/profileFormat';
 import { ProfileHeroCard } from '../profile/ProfileHeroCard';
 import { Icon } from '../ui/Icon';
 import './PickCard.css';
@@ -12,7 +13,7 @@ export function PickCard({ candidate, to }: { candidate: RankedCandidate; to: st
   return (
     <article className="pick-card">
       <Link to={to} className="pick-card__link" aria-label={`View ${profile.firstName}'s profile`}>
-        <ProfileHeroCard profile={profile} distanceLabel={`${distanceKm} km away`} as="div" ratio="5 / 6" />
+        <ProfileHeroCard profile={profile} distanceLabel={distanceLabel(profile, distanceKm)} as="div" ratio="5 / 6" />
         <div className="pick-card__body">
           {highlights.length > 0 && (
             <ul className="pick-card__reasons" role="list">

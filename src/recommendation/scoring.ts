@@ -1,7 +1,16 @@
 import { getInterest } from '../domain/interest';
 import type { FilterRule, Preferences, Profile } from '../domain/types';
 import { profileAge } from '../utils/profileFormat';
-import { visibleChildren, visibleDrinking, visibleReligion, visibleSmoking, visibleWantsChildren } from './fields';
+import {
+  visibleChildren,
+  visibleDrinking,
+  visibleEducationLevel,
+  visibleHeight,
+  visiblePolitics,
+  visibleReligion,
+  visibleSmoking,
+  visibleWantsChildren,
+} from './fields';
 import { intentAlignment } from './intent';
 import type { ScoreComponent, ScoreResult, SoftPreferenceResult } from './types';
 
@@ -34,6 +43,14 @@ function softRule<T extends string>(label: string, rule: FilterRule<T> | null, v
   if (value === undefined) return { label, outcome: 'unknown', detail: 'Not shared' };
   const ok = rule.values.includes(value);
   return { label, outcome: ok ? 'matched' : 'missed', detail: `${value}${ok ? ' matches' : ' is outside'} your preference` };
+}
+
+function softHeight(prefs: Preferences, height: number | undefined): SoftPreferenceResult | null {
+  const rule = prefs.height;
+  if (!rule || rule.mode !== 'preference') return null;
+  if (height === undefined) return { label: 'Height', outcome: 'unknown', detail: 'Not shared' };
+  const ok = height >= rule.minCm && height <= rule.maxCm;
+  return { label: 'Height', outcome: ok ? 'matched' : 'missed', detail: `${height} cm${ok ? ' matches' : ' is outside'} your preference` };
 }
 
 export function scoreCandidate(viewer: Profile, prefs: Preferences, candidate: Profile, distanceKm: number, now = Date.now()): ScoreResult {
@@ -78,6 +95,9 @@ export function scoreCandidate(viewer: Profile, prefs: Preferences, candidate: P
     softRule('Has children', prefs.children, visibleChildren(candidate)),
     softRule('Wants children', prefs.wantsChildren, visibleWantsChildren(candidate)),
     softRule('Religion', prefs.religion, visibleReligion(candidate)),
+    softRule('Politics', prefs.politics ?? null, visiblePolitics(candidate)),
+    softRule('Education', prefs.education ?? null, visibleEducationLevel(candidate)),
+    softHeight(prefs, visibleHeight(candidate)),
   ].filter((r): r is SoftPreferenceResult => r !== null);
   const softPts = softPreferences.reduce((sum, r) => sum + (r.outcome === 'matched' ? WEIGHTS.softMatch : r.outcome === 'missed' ? WEIGHTS.softMiss : 0), 0);
   components.push({

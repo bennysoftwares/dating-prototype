@@ -23,3 +23,8 @@ export function approxDistanceKm(a: Profile['location'], b: Profile['location'])
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLng / 2) ** 2;
   return Math.max(1, Math.round(2 * R * Math.asin(Math.sqrt(h))));
 }
+
+/** "8 km away", or nothing if that person hides their distance. Never more precise than whole km. */
+export function distanceLabel(profile: Pick<Profile, 'hideDistance'>, km: number): string | undefined {
+  return profile.hideDistance ? undefined : `${km} km away`;
+}

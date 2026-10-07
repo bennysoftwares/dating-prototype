@@ -42,6 +42,15 @@ After onboarding, **Profile → Edit profile** reopens any answer using the same
 - No read receipts, no online/active status, no typing indicators. Unread state is private to you.
 - **Matches never expire.** After 5 quiet days a chat asks “Still interested?” (Send a message / Keep for later / Archive). After 14 days it moves to Inactive. Nothing is unmatched automatically, and archived chats are always recoverable.
 
+## Filters, privacy, safety and dates
+
+- **Filters** (Settings → Filters & dealbreakers, or the filter icon in Discover): show me, age, distance and dating intention, plus children, wants children, smoking, drinking, religion, politics, height and education. Each can be a **preference** (ranks people higher, never hides anyone) or a **dealbreaker** (people outside it never appear). Filters only use answers people choose to show.
+- **Privacy & visibility**: incognito (only people you like can see you), pause (hidden from Discover, matches and chats keep working), hide distance, per-field “show on profile”, and a hide-from-contacts prototype (nothing is uploaded). Read receipts and activity status stay off.
+- **Safety, free for everyone**: report (8 categories, optional details, optionally block), block and unmatch from the ··· menu on any profile or chat. Nobody is told who reported or blocked them. Blocked people disappear everywhere; Settings → Blocked users can unblock.
+- **Verification (mock)**: photo and ID verification with a clear badge, and copy that's explicit that verification doesn't mean someone is safe.
+- **Dates**: once both people have written, *Plan a date* (day, time, optional place and note) creates a shared date card with Accept / Suggest change. **Share date** sends who, where and when to someone you trust via the phone's share sheet (or copy). After the date, a private **How did it go?** check-in is stored as recommendation feedback and never shown to the other person.
+- **Settings**: account status and verification, filters, privacy, safety, blocked users, archived matches, appearance, a notifications placeholder, download my data (JSON) and a prototype delete-account flow.
+
 ## Hidden developer panel
 
 Open `#/debug`, or tap the version line at the bottom of **Profile** five times quickly.
@@ -53,6 +62,9 @@ or reset likes and passes.
 The **Likes, matches & messages** section simulates the other person: create an incoming like (with or
 without a comment), force a mutual match, simulate a reply (unread), make the latest chat quiet
 (Still interested?) or inactive, and reset conversations.
+The **Account states, safety & dates** section toggles paused / incognito / photo verified / ID verified,
+has your match suggest or accept a date, simulates a completed date (for post-date feedback), and can
+unblock everyone or clear reports.
 
 ## GitHub Pages
 
@@ -72,7 +84,7 @@ src/
   session/        Signed-in account (decides onboarding vs. app)
   onboarding/     Draft model, validation, persisted draft hook
   discovery/      DiscoveryProvider: today's picks, likes, passes, one-step undo
-  connections/    ConnectionsProvider: likes received, matches, messages, unread; drafts
+  connections/    ConnectionsProvider: likes received, matches, messages, unread, dates, safety; drafts
   components/
     ui/           Button, Chip, Card, PhotoFrame, ListRow, EmptyState, Skeleton, BottomSheet…
     form/         TextField, ChoiceList, ChipSelect, Switch, VisibilityToggle, RangeField, ModeToggle
@@ -80,10 +92,13 @@ src/
     profile/      ProfileView (full vertical profile), ProfileHeroCard, PromptCard
     discovery/    PickCard, LikeButton, LikeSheet, CompatibilitySection
     connections/  ConversationRow, MessageBubble, Composer, LikedSnapshot
+    safety/       SafetySheet (report, block, unmatch)
+    dates/        DatePlanSheet, DateCard, ShareDateSheet, DateFeedbackSheet
     brand/        Logo
   screens/        onboarding (welcome, steps, preview), discover (picks, profile),
                   likes (list, liker profile), matches (list, archived, chat, match screen),
-                  profile (tab, edit, preview), debug, system (gate, 404, route error)
+                  profile (tab, edit, preview), settings (filters, privacy, verification, blocked, safety),
+                  debug, system (gate, 404, route error)
   domain/         Types, intents, interests, profile options, cities, matching rules, conversation ideas
   data/mock/      Seed data
   repositories/   Async repository interfaces + localStorage implementation

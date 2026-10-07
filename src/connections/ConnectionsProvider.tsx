@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { conversationState, unreadCount, type ConversationState } from '../domain/matching';
-import type { ID, Like, Match, Message, Pass, Profile } from '../domain/types';
-import type { NewMessage } from '../repositories/types';
+import { datePassed } from '../domain/dates';
+import type { DateFeedback, DatePlan, ID, Like, Match, Message, Pass, Profile, ReportCategory } from '../domain/types';
+import type { DateInput, NewMessage } from '../repositories/types';
 import { useRepositories } from '../repositories/RepositoryContext';
 
 export interface Conversation {
@@ -11,6 +12,11 @@ export interface Conversation {
   last: Message | undefined;
   unread: number;
   state: ConversationState;
+  /** Both people have written at least one real message (date planning becomes available). */
+  established: boolean;
+  dates: DatePlan[];
+  /** An accepted date that has passed and has no private feedback yet. */
+  awaitingFeedback: DatePlan | undefined;
 }
 
 export interface IncomingLike {
@@ -25,6 +31,8 @@ interface ConnectionsData {
   matches: Match[];
   messages: Message[];
   profilesByUser: Map<ID, Profile>;
+  dates: DatePlan[];
+  feedback: DateFeedback[];
 }
 
 interface ConnectionsValue {
@@ -47,6 +55,16 @@ interface ConnectionsValue {
   markRead: (matchId: ID) => Promise<void>;
   setArchived: (matchId: ID, archived: boolean) => Promise<void>;
   keepForLater: (matchId: ID) => Promise<void>;
+  getDate: (dateId: ID) => DatePlan | undefined;
+  feedbackFor: (dateId: ID) => DateFeedback | undefined;
+  proposeDate: (matchId: ID, input: DateInput, replaces?: ID) => Promise<void>;
+  acceptDate: (dateId: ID) => Promise<void>;
+  cancelDate: (dateId: ID) => Promise<void>;
+  giveFeedback: (input: Omit<DateFeedback, 'id' | 'createdAt' | 'matchId' | 'aboutUserId'>) => Promise<void>;
+  /** Safety: always available to everyone. */
+  block: (userId: ID) => Promise<void>;
+  report: (input: { userId: ID; category: ReportCategory; details?: string; alsoBlock: boolean }) => Promise<void>;
+  unmatch: (matchId: ID) => Promise<void>;
 }
 
 const ConnectionsContext = createContext<ConnectionsValue | null>(null);
@@ -66,16 +84,18 @@ export function ConnectionsProvider({ children }: { children: ReactNode }) {
 
   const load = useCallback(async () => {
     try {
-      const [viewer, received, discovery, matches, messages, others] = await Promise.all([
+      const [viewer, received, discovery, matches, messages, others, dates, feedback] = await Promise.all([
         repos.profiles.getCurrentProfile(),
         repos.incomingLikes.listReceived(),
         repos.discovery.getState(),
         repos.matches.listMatches(),
         repos.matches.listAllMessages(),
         repos.profiles.listCandidates(),
+        repos.dates.list(),
+        repos.dates.listFeedback(),
       ]);
       if (!viewer) throw new Error('Finish your profile to see likes and matches.');
-      setData({ viewer, received, passes: discovery.passes, matches, messages, profilesByUser: new Map(others.map((p) => [p.userId, p])) });
+      setData({ viewer, received, passes: discovery.passes, matches, messages, profilesByUser: new Map(others.map((p) => [p.userId, p])), dates, feedback });
       setNow(Date.now());
       setStatus('ready');
       setError(null);
@@ -138,12 +158,18 @@ export function ConnectionsProvider({ children }: { children: ReactNode }) {
         const other = otherId ? data.profilesByUser.get(otherId) : undefined;
         if (!other) return null;
         const messages = byMatch.get(match.id) ?? [];
+        const real = messages.filter((m) => !m.likeContext && m.kind !== 'date');
+        const dates = data.dates.filter((d) => d.matchId === match.id);
+        const answered = new Set(data.feedback.map((f) => f.dateId));
         return {
           match,
           other,
           messages,
           last: messages[messages.length - 1],
           unread: unreadCount(match, messages, me),
+          established: real.some((m) => m.senderId === me) && real.some((m) => m.senderId !== me),
+          dates,
+          awaitingFeedback: dates.find((d) => d.status === 'accepted' && datePassed(d, now) && !answered.has(d.id)),
           // Like comments carried into the chat are context, not the start of a conversation.
           state: conversationState(match, messages.some((m) => !m.likeContext), now),
         };
@@ -211,6 +237,25 @@ export function ConnectionsProvider({ children }: { children: ReactNode }) {
     [repos, refresh],
   );
 
+  const getDate = useCallback((id: ID) => data?.dates.find((d) => d.id === id), [data]);
+  const feedbackFor = useCallback((id: ID) => data?.feedback.find((f) => f.dateId === id), [data]);
+
+  /** Run a write, then reload so every screen sees the result immediately. */
+  const write = useCallback(
+    async (fn: () => Promise<unknown>) => {
+      await fn();
+      await refresh();
+    },
+    [refresh],
+  );
+  const proposeDate = useCallback((matchId: ID, input: DateInput, replaces?: ID) => write(() => repos.dates.propose(matchId, input, replaces)), [write, repos]);
+  const acceptDate = useCallback((dateId: ID) => write(() => repos.dates.accept(dateId)), [write, repos]);
+  const cancelDate = useCallback((dateId: ID) => write(() => repos.dates.cancel(dateId)), [write, repos]);
+  const giveFeedback = useCallback<ConnectionsValue['giveFeedback']>((input) => write(() => repos.dates.giveFeedback(input)), [write, repos]);
+  const block = useCallback((userId: ID) => write(() => repos.safety.block(userId)), [write, repos]);
+  const report = useCallback<ConnectionsValue['report']>((input) => write(() => repos.safety.report(input)), [write, repos]);
+  const unmatch = useCallback((matchId: ID) => write(() => repos.safety.unmatch(matchId)), [write, repos]);
+
   const value = useMemo<ConnectionsValue>(
     () => ({
       status,
@@ -229,8 +274,17 @@ export function ConnectionsProvider({ children }: { children: ReactNode }) {
       markRead,
       setArchived,
       keepForLater,
+      getDate,
+      feedbackFor,
+      proposeDate,
+      acceptDate,
+      cancelDate,
+      giveFeedback,
+      block,
+      report,
+      unmatch,
     }),
-    [status, error, data, derived, refresh, getConversation, getIncoming, acceptLike, passLike, sendMessage, markRead, setArchived, keepForLater],
+    [status, error, data, derived, refresh, getConversation, getIncoming, acceptLike, passLike, sendMessage, markRead, setArchived, keepForLater, getDate, feedbackFor, proposeDate, acceptDate, cancelDate, giveFeedback, block, report, unmatch],
   );
   return <ConnectionsContext.Provider value={value}>{children}</ConnectionsContext.Provider>;
 }
