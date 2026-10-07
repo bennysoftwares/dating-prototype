@@ -8,6 +8,8 @@ interface ScreenProps {
   eyebrow?: ReactNode;
   subtitle?: ReactNode;
   actions?: ReactNode;
+  /** Shown before the title, e.g. a back button. */
+  leading?: ReactNode;
   /** Visually hide the large title (it remains the page heading for screen readers). */
   hideTitle?: boolean;
   children: ReactNode;
@@ -15,11 +17,12 @@ interface ScreenProps {
 }
 
 /** Standard screen: sticky safe-area header with a large title, then content. */
-export function Screen({ title, eyebrow, subtitle, actions, hideTitle, children, className }: ScreenProps) {
+export function Screen({ title, eyebrow, subtitle, actions, leading, hideTitle, children, className }: ScreenProps) {
   return (
     <div className={cx('screen', className)}>
       <header className="screen__header">
         <div className="screen__header-inner">
+          {leading && <div className="screen__leading">{leading}</div>}
           <div className="screen__titles">
             {eyebrow && <p className="screen__eyebrow">{eyebrow}</p>}
             <h1 className={cx('screen__title', hideTitle && 'visually-hidden')}>{title}</h1>

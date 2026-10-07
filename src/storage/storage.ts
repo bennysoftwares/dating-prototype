@@ -21,6 +21,8 @@ type Listener = (key: string) => void;
 const PREFIX = `${brand.storageNamespace}:`;
 const listeners = new Set<Listener>();
 const memory = new Map<string, string>();
+/** Read-through cache of raw strings so large values aren't re-read every render. */
+const rawCache = new Map<string, string | null>();
 
 function backend(): Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'> {
   try {
@@ -49,8 +51,13 @@ function emit(key: string) {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
-    if (e.key === null) emit('*');
-    else if (e.key.startsWith(PREFIX)) emit(e.key.slice(PREFIX.length));
+    if (e.key === null) {
+      rawCache.clear();
+      emit('*');
+    } else if (e.key.startsWith(PREFIX)) {
+      rawCache.delete(e.key);
+      emit(e.key.slice(PREFIX.length));
+    }
   });
 }
 
@@ -65,7 +72,7 @@ export const storage = {
   get<T>(key: string, fallback: T, options: ReadOptions<T> = {}): T {
     const { version = 1, validate } = options;
     try {
-      const raw = store.getItem(PREFIX + key);
+      const raw = this.raw(key);
       if (raw === null) return fallback;
       const parsed = JSON.parse(raw) as Partial<Envelope<unknown>>;
       if (!parsed || typeof parsed !== 'object' || parsed.v !== version || !('data' in parsed)) return fallback;
@@ -76,17 +83,25 @@ export const storage = {
     }
   },
 
-  set<T>(key: string, data: T, version = 1): void {
+  /** Returns false when the write failed (usually because storage is full). */
+  set<T>(key: string, data: T, version = 1): boolean {
+    let ok = true;
     try {
       const envelope: Envelope<T> = { v: version, data };
-      store.setItem(PREFIX + key, JSON.stringify(envelope));
+      const raw = JSON.stringify(envelope);
+      store.setItem(PREFIX + key, raw);
+      rawCache.set(PREFIX + key, raw);
     } catch (err) {
+      ok = false;
+      rawCache.delete(PREFIX + key);
       console.warn(`[storage] Could not save "${key}"`, err);
     }
     emit(key);
+    return ok;
   },
 
   remove(key: string): void {
+    rawCache.delete(PREFIX + key);
     try {
       store.removeItem(PREFIX + key);
     } catch {
@@ -111,8 +126,12 @@ export const storage = {
 
   /** Raw stored string, for the debug panel. */
   raw(key: string): string | null {
+    const full = PREFIX + key;
+    if (rawCache.has(full)) return rawCache.get(full) ?? null;
     try {
-      return store.getItem(PREFIX + key);
+      const raw = store.getItem(full);
+      rawCache.set(full, raw);
+      return raw;
     } catch {
       return null;
     }
@@ -120,6 +139,7 @@ export const storage = {
 
   /** Remove every key owned by this app. */
   clearAll(): void {
+    rawCache.clear();
     this.keys().forEach((k) => {
       try {
         store.removeItem(PREFIX + k);

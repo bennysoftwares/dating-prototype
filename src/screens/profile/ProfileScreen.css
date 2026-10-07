@@ -8,3 +8,6 @@
   user-select: none;
   -webkit-user-select: none;
 }
+.profile__actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin-top: calc(var(--space-4) * -1); }
+.profile__preview { display: flex; flex-direction: column; align-items: center; gap: var(--space-6); }
+.profile__preview > .btn { max-width: 460px; }

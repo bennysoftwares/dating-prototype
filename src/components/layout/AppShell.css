@@ -8,6 +8,7 @@
   /* Content never sits under the nav or the home indicator. */
   padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + var(--space-6));
   outline: none;
+  overflow-x: clip;
 }
 .shell__page { animation: page-in var(--duration-slow) var(--ease-out) both; }
 @keyframes page-in {

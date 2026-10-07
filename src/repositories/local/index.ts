@@ -1,4 +1,4 @@
-import type { Repositories } from '../types';
+import { StorageFullError, type Repositories } from '../types';
 import { localDb, withLatency } from './localDb';
 
 export function createLocalRepositories(): Repositories {
@@ -10,19 +10,44 @@ export function createLocalRepositories(): Repositories {
     return user;
   };
 
+  const ensure = (ok: boolean) => {
+    if (!ok) throw new StorageFullError();
+  };
+
   return {
     users: {
       getCurrentUser: () => withLatency(currentUser),
-      getPreferences: () =>
+      getPreferences: () => withLatency(() => localDb.preferences()),
+      savePreferences: (preferences) =>
         withLatency(() => {
-          const prefs = localDb.preferences();
-          if (!prefs) throw new Error('No preferences found in local data.');
-          return prefs;
+          ensure(localDb.writePreferences({ ...preferences, userId: currentUser().id }));
+          return preferences;
+        }),
+      completeOnboarding: (profile, preferences) =>
+        withLatency(() => {
+          const user = currentUser();
+          ensure(localDb.writeOwnProfile({ ...profile, id: user.profileId, userId: user.id }));
+          ensure(localDb.writePreferences({ ...preferences, userId: user.id }));
+          const next = { ...user, onboardingComplete: true, lastActiveAt: new Date().toISOString() };
+          ensure(localDb.writeUser(next));
+          return next;
         }),
     },
     profiles: {
       getProfile: (id) => withLatency(() => localDb.profiles().find((p) => p.id === id) ?? null),
       getProfileByUserId: (userId) => withLatency(() => localDb.profiles().find((p) => p.userId === userId) ?? null),
+      getCurrentProfile: () =>
+        withLatency(() => {
+          const user = currentUser();
+          return localDb.profiles().find((p) => p.id === user.profileId) ?? null;
+        }),
+      saveCurrentProfile: (profile) =>
+        withLatency(() => {
+          const user = currentUser();
+          const saved = { ...profile, id: user.profileId, userId: user.id, updatedAt: new Date().toISOString() };
+          ensure(localDb.writeOwnProfile(saved));
+          return saved;
+        }),
       listCandidates: () => withLatency(() => localDb.profiles().filter((p) => p.userId !== currentUser().id)),
     },
     matches: {

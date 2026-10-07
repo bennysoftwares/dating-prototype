@@ -19,6 +19,15 @@ export const ROUTES = {
   likes: '/likes',
   matches: '/matches',
   profile: '/profile',
+  profileEdit: '/profile/edit',
+  profileEditStep: (stepId: string) => `/profile/edit/${stepId}`,
+  profilePreview: '/profile/preview',
   /** Hidden developer panel. Not linked from navigation. */
   debug: '/debug',
+} as const;
+
+export const ONBOARDING_ROUTES = {
+  welcome: '/welcome',
+  step: (stepId: string) => `/onboarding/${stepId}`,
+  preview: '/onboarding/preview',
 } as const;

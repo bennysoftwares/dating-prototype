@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router';
 import { ROUTES } from '../../app/navigation';
 import { Screen, Section } from '../../components/layout';
 import { ProfileHeroCard } from '../../components/profile/ProfileHeroCard';
-import { PromptCard } from '../../components/profile/PromptCard';
-import { Chip, ChipList, ErrorState, ListGroup, ListRow, LoadingRegion, SegmentedControl, Skeleton } from '../../components/ui';
+import { Button, ErrorState, ListGroup, ListRow, LoadingRegion, SegmentedControl, Skeleton } from '../../components/ui';
 import { brand } from '../../config/brand';
 import { getInterest } from '../../domain/interest';
 import { useAsync } from '../../hooks/useAsync';
 import { useRepositories } from '../../repositories/RepositoryContext';
 import { useTheme, type ThemePreference } from '../../theme/ThemeProvider';
-import { formatHeight } from '../../utils/profileFormat';
+import { PROFILE_LIMITS } from '../../domain/profileOptions';
+import { intentLabel } from '../../utils/profileFormat';
 import './ProfileScreen.css';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: 'device' | 'sun' | 'moon' }[] = [
@@ -23,15 +23,14 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: 'device' | '
 const DEBUG_TAPS = 5;
 
 export function ProfileScreen() {
-  const { users, profiles } = useRepositories();
+  const { profiles } = useRepositories();
   const { preference, setPreference } = useTheme();
   const navigate = useNavigate();
   const taps = useRef({ count: 0, last: 0 });
 
   const state = useAsync(async () => {
-    const user = await users.getCurrentUser();
-    return profiles.getProfile(user.profileId);
-  }, [users, profiles]);
+    return profiles.getCurrentProfile();
+  }, [profiles]);
 
   const onVersionTap = () => {
     const now = Date.now();
@@ -53,35 +52,23 @@ export function ProfileScreen() {
       {state.status === 'error' && <ErrorState onRetry={state.retry} />}
       {state.status === 'success' && !state.data && <ErrorState message="We couldn't find your profile." onRetry={state.retry} />}
 
-      {state.status === 'success' && state.data && (() => {
-        const p = state.data;
-        return (
-          <>
-            <ProfileHeroCard profile={p} as="div" />
-
-            <Section title="About">
-              <ListGroup label="About you">
-                {p.job && <ListRow icon="briefcase" title={p.job} subtitle="Work" />}
-                {p.education && <ListRow icon="sparkle" title={p.education} subtitle="Education" />}
-                {p.heightCm && <ListRow icon="ruler" title={formatHeight(p.heightCm)} subtitle="Height" />}
-                <ListRow icon="globe" title={p.languages.join(', ')} subtitle="Languages" />
-              </ListGroup>
-            </Section>
-
-            <Section title="Interests">
-              <ChipList label="Interests">
-                {p.interests.map((id) => (
-                  <li key={id}><Chip>{getInterest(id).label}</Chip></li>
-                ))}
-              </ChipList>
-            </Section>
-
-            <Section title="Prompts">
-              {p.prompts.map((q) => <PromptCard key={q.id} prompt={q} />)}
-            </Section>
-          </>
-        );
-      })()}
+      {state.status === 'success' && state.data && (
+        <>
+          <ProfileHeroCard profile={state.data} as="div" />
+          <div className="profile__actions">
+            <Button icon="edit" size="lg" block onClick={() => navigate(ROUTES.profileEdit)}>Edit profile</Button>
+            <Button icon="eye" size="lg" variant="secondary" block onClick={() => navigate(ROUTES.profilePreview)}>Preview</Button>
+          </div>
+          <Section title="Your profile">
+            <ListGroup label="Profile summary">
+              <ListRow icon="camera" title="Photos" subtitle={`${state.data.photos.length} of ${PROFILE_LIMITS.photosMax}`} to={ROUTES.profileEditStep('photos')} chevron />
+              <ListRow icon="edit" title="Prompts" subtitle={`${state.data.prompts.length} of ${PROFILE_LIMITS.promptsMax} answered`} to={ROUTES.profileEditStep('prompts')} chevron />
+              <ListRow icon="sparkle" title="Interests" subtitle={state.data.interests.map((id) => getInterest(id).label).join(', ')} to={ROUTES.profileEditStep('interests')} chevron />
+              <ListRow icon="heart" title="Looking for" subtitle={intentLabel(state.data)} to={ROUTES.profileEditStep('intent')} chevron />
+            </ListGroup>
+          </Section>
+        </>
+      )}
 
       <Section title="Appearance">
         <SegmentedControl legend="Theme" value={preference} options={THEME_OPTIONS} onChange={setPreference} />

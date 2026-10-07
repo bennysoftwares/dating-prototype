@@ -4,7 +4,10 @@ import { NAV_ITEMS } from '../../app/navigation';
 import { Screen, Section } from '../../components/layout';
 import { Button, Card, IconButton, ListGroup, ListRow, SegmentedControl } from '../../components/ui';
 import { brand } from '../../config/brand';
+import { createDemoPreferences, createDemoProfile } from '../../data/mock';
+import { profileToDraft } from '../../onboarding/draft';
 import { DB_SCHEMA_VERSION, localDb } from '../../repositories/local/localDb';
+import { STORAGE_KEYS } from '../../storage/keys';
 import { storage } from '../../storage/storage';
 import { useTheme, type ThemePreference } from '../../theme/ThemeProvider';
 import { SafeAreaReadout } from './SafeAreaReadout';
@@ -28,22 +31,50 @@ export function DebugScreen() {
     messages: localDb.messages().length,
   };
 
+  const user = localDb.user();
+  const draftExists = storage.raw(STORAGE_KEYS.onboardingDraft.key) !== null;
+
+  /** Data actions change the account state, so reload into the right place. */
+  const reloadTo = (hash: string) => {
+    window.location.hash = hash;
+    window.location.reload();
+  };
+
   const resetDemoData = () => {
     localDb.reset();
-    window.location.reload();
+    reloadTo('#/welcome');
+  };
+
+  const loadDemo = () => {
+    localDb.loadDemoUser();
+    reloadTo('#/profile');
+  };
+
+  const restartOnboarding = () => {
+    localDb.restartOnboarding();
+    reloadTo('#/welcome');
+  };
+
+  const prefillDraft = () => {
+    localDb.restartOnboarding();
+    const draft = profileToDraft(createDemoProfile(new Date().toISOString()), createDemoPreferences());
+    const { photos, ...rest } = draft;
+    storage.set(STORAGE_KEYS.onboardingDraft.key, { ...rest, lastStepId: 'bio' }, STORAGE_KEYS.onboardingDraft.version);
+    storage.set(STORAGE_KEYS.onboardingPhotos.key, photos, STORAGE_KEYS.onboardingPhotos.version);
+    reloadTo('#/onboarding/preview');
   };
 
   const clearAll = () => {
     if (!window.confirm('Clear all locally stored prototype data?')) return;
     storage.clearAll();
-    window.location.reload();
+    reloadTo('#/welcome');
   };
 
   return (
     <Screen
       title="Developer"
       eyebrow="Hidden panel"
-      actions={<IconButton icon="close" label="Close developer panel" onClick={() => navigate(-1)} />}
+      actions={<IconButton icon="close" label="Close developer panel" onClick={() => navigate(user?.onboardingComplete ? '/profile' : '/welcome')} />}
       className="debug"
     >
       <Section title="Build">
@@ -52,6 +83,18 @@ export function DebugScreen() {
           <ListRow title="Data schema" subtitle={`v${DB_SCHEMA_VERSION} · seeded ${meta ? new Date(meta.seededAt).toLocaleString() : 'never'}`} />
           <ListRow title="Mock data" subtitle={`${counts.profiles} profiles · ${counts.matches} matches · ${counts.messages} messages`} />
         </ListGroup>
+      </Section>
+
+      <Section title="Account & onboarding">
+        <ListGroup label="Onboarding status">
+          <ListRow title="Onboarding" trailing={user?.onboardingComplete ? 'Complete' : 'Not complete'} />
+          <ListRow title="Saved onboarding draft" trailing={draftExists ? 'Yes' : 'None'} />
+        </ListGroup>
+        <div className="debug__actions">
+          <Button variant="secondary" icon="user" onClick={loadDemo} block>Load demo user (Alex)</Button>
+          <Button variant="secondary" icon="refresh" onClick={restartOnboarding} block>Restart onboarding (blank)</Button>
+          <Button variant="secondary" icon="edit" onClick={prefillDraft} block>Prefill onboarding with Alex</Button>
+        </div>
       </Section>
 
       <Section title="Theme" description={`Resolved: ${resolved}`}>
@@ -99,7 +142,7 @@ export function DebugScreen() {
 
       <Section title="Actions">
         <div className="debug__actions">
-          <Button variant="secondary" icon="refresh" onClick={resetDemoData} block>Reset demo data</Button>
+          <Button variant="secondary" icon="refresh" onClick={resetDemoData} block>Reset demo data (fresh account)</Button>
           <Button variant="quiet" onClick={clearAll} block>Clear all local data</Button>
         </div>
       </Section>
